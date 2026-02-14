@@ -13,21 +13,54 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * 学習進捗トラッカーのコントローラー
+ * 学習進捗トラッカーのWebリクエストを処理するSpring MVCコントローラー。
+ *
+ * <p>科目（{@link Subject}）の一覧表示・追加・削除と、
+ * タスク（{@link Task}）の追加・完了切替・削除のエンドポイントを提供する。</p>
+ *
+ * <h3>エンドポイント一覧</h3>
+ * <table border="1">
+ *   <tr><th>HTTP</th><th>パス</th><th>説明</th></tr>
+ *   <tr><td>GET</td><td>/</td><td>科目一覧</td></tr>
+ *   <tr><td>POST</td><td>/subjects</td><td>科目登録</td></tr>
+ *   <tr><td>POST</td><td>/subjects/{id}/delete</td><td>科目削除</td></tr>
+ *   <tr><td>GET</td><td>/subjects/{id}</td><td>科目詳細（タスク一覧）</td></tr>
+ *   <tr><td>POST</td><td>/subjects/{subjectId}/tasks</td><td>タスク登録</td></tr>
+ *   <tr><td>POST</td><td>/tasks/{taskId}/complete</td><td>タスク完了切替</td></tr>
+ *   <tr><td>POST</td><td>/tasks/{taskId}/delete</td><td>タスク削除</td></tr>
+ * </table>
+ *
+ * @author tracker-team
+ * @version 1.0
+ * @since 1.0
+ * @see SubjectRepository
+ * @see TaskRepository
  */
 @Controller
 public class TrackerController {
-    
+
     private final SubjectRepository subjectRepository;
     private final TaskRepository taskRepository;
-    
+
+    /**
+     * コンストラクタインジェクション。
+     *
+     * @param subjectRepository 科目リポジトリ
+     * @param taskRepository    タスクリポジトリ
+     */
     public TrackerController(SubjectRepository subjectRepository, TaskRepository taskRepository) {
         this.subjectRepository = subjectRepository;
         this.taskRepository = taskRepository;
     }
-    
+
     /**
-     * 科目一覧ページ (/)
+     * 科目一覧ページを表示する。
+     *
+     * <p>全科目をタスク統計付きで取得し、
+     * {@code subjects} 属性としてモデルに追加する。</p>
+     *
+     * @param model ビューにデータを渡すSpring MVC Model
+     * @return ビュー名 {@code "index"}
      */
     @GetMapping("/")
     public String index(Model model) {
@@ -37,7 +70,10 @@ public class TrackerController {
     }
     
     /**
-     * 科目登録処理
+     * 新しい科目を登録し、一覧ページへリダイレクトする。
+     *
+     * @param name フォームから送信された科目名
+     * @return {@code "/"} へのリダイレクト
      */
     @PostMapping("/subjects")
     public String createSubject(@RequestParam("name") String name) {
@@ -46,7 +82,12 @@ public class TrackerController {
     }
     
     /**
-     * 科目削除処理
+     * 科目を削除し、一覧ページへリダイレクトする。
+     *
+     * <p>{@code ON DELETE CASCADE} により、紐づくタスクも全て削除される。</p>
+     *
+     * @param id 削除対象の科目ID
+     * @return {@code "/"} へのリダイレクト
      */
     @PostMapping("/subjects/{id}/delete")
     public String deleteSubject(@PathVariable("id") Long id) {
@@ -55,7 +96,22 @@ public class TrackerController {
     }
     
     /**
-     * タスク一覧ページ (/subjects/{id})
+     * 科目詳細ページ（タスク一覧）を表示する。
+     *
+     * <p>科目が見つからない場合は一覧ページへリダイレクトする。</p>
+     *
+     * <p>モデルに追加される属性:</p>
+     * <ul>
+     *   <li>{@code subject} — 科目エンティティ</li>
+     *   <li>{@code tasks} — タスク一覧</li>
+     *   <li>{@code totalTasks} — タスク総数</li>
+     *   <li>{@code completedTasks} — 完了済みタスク数</li>
+     *   <li>{@code incompleteTasks} — 未完了タスク数</li>
+     * </ul>
+     *
+     * @param id    科目ID
+     * @param model Spring MVC Model
+     * @return ビュー名 {@code "subject_details"} または {@code "/"} へのリダイレクト
      */
     @GetMapping("/subjects/{id}")
     public String subjectDetails(@PathVariable("id") Long id, Model model) {
@@ -83,7 +139,11 @@ public class TrackerController {
     }
     
     /**
-     * タスク登録処理
+     * 指定した科目に新しいタスクを登録し、科目詳細ページへリダイレクトする。
+     *
+     * @param subjectId タスクを追加する科目のID
+     * @param title     フォームから送信されたタスクタイトル
+     * @return {@code "/subjects/{subjectId}"} へのリダイレクト
      */
     @PostMapping("/subjects/{subjectId}/tasks")
     public String createTask(
@@ -94,7 +154,12 @@ public class TrackerController {
     }
     
     /**
-     * タスク完了処理
+     * タスクの完了状態を更新し、科目詳細ページへリダイレクトする。
+     *
+     * @param taskId    更新対象のタスクID
+     * @param subjectId リダイレクト先の科目ID
+     * @param completed 新しい完了状態（{@code true}: 完了、{@code false}: 未完了）
+     * @return {@code "/subjects/{subjectId}"} へのリダイレクト
      */
     @PostMapping("/tasks/{taskId}/complete")
     public String completeTask(
@@ -106,7 +171,11 @@ public class TrackerController {
     }
     
     /**
-     * タスク削除処理
+     * タスクを削除し、科目詳細ページへリダイレクトする。
+     *
+     * @param taskId    削除対象のタスクID
+     * @param subjectId リダイレクト先の科目ID
+     * @return {@code "/subjects/{subjectId}"} へのリダイレクト
      */
     @PostMapping("/tasks/{taskId}/delete")
     public String deleteTask(

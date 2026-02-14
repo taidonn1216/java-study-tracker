@@ -8,14 +8,26 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * JdbcTemplateを使用したTaskRepositoryの実装
+ * {@link TaskRepository} の JDBC 実装クラス。
+ *
+ * <p>Spring {@link JdbcTemplate} を使用して {@code TASK} テーブルに
+ * 対するCRUD操作および統計クエリを実行する。
+ * {@code @Repository} としてSpring DIコンテナに登録される。</p>
+ *
+ * @author tracker-team
+ * @version 1.0
+ * @since 1.0
+ * @see TaskRepository
  */
 @Repository
 public class TaskRepositoryImpl implements TaskRepository {
-    
+
+    /** SQL実行用のSpring JdbcTemplate */
     private final JdbcTemplate jdbcTemplate;
-    
-    // RowMapper for Task
+
+    /**
+     * {@link java.sql.ResultSet} の行を {@link Task} オブジェクトに変換する {@link RowMapper}。
+     */
     private final RowMapper<Task> taskRowMapper = (rs, rowNum) -> {
         Task task = new Task();
         task.setId(rs.getLong("id"));
@@ -24,42 +36,53 @@ public class TaskRepositoryImpl implements TaskRepository {
         task.setCompleted(rs.getBoolean("completed"));
         return task;
     };
-    
+
+    /**
+     * コンストラクタインジェクション。
+     *
+     * @param jdbcTemplate Springが提供する {@link JdbcTemplate} インスタンス
+     */
     public TaskRepositoryImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
-    
+
+    /** {@inheritDoc} */
     @Override
     public List<Task> findBySubjectId(Long subjectId) {
         String sql = "SELECT id, subject_id, title, completed FROM TASK WHERE subject_id = ? ORDER BY id";
         return jdbcTemplate.query(sql, taskRowMapper, subjectId);
     }
-    
+
+    /** {@inheritDoc} */
     @Override
     public void insert(Long subjectId, String title) {
         String sql = "INSERT INTO TASK (subject_id, title, completed) VALUES (?, ?, FALSE)";
         jdbcTemplate.update(sql, subjectId, title);
     }
-    
+
+    /** {@inheritDoc} */
     @Override
     public void updateCompleted(Long taskId, boolean completed) {
         String sql = "UPDATE TASK SET completed = ? WHERE id = ?";
         jdbcTemplate.update(sql, completed, taskId);
     }
-    
+
+    /** {@inheritDoc} */
     @Override
     public void deleteById(Long taskId) {
         String sql = "DELETE FROM TASK WHERE id = ?";
         jdbcTemplate.update(sql, taskId);
     }
-    
+
+    /** {@inheritDoc} */
     @Override
     public int countBySubjectId(Long subjectId) {
         String sql = "SELECT COUNT(*) FROM TASK WHERE subject_id = ?";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, subjectId);
         return count != null ? count : 0;
     }
-    
+
+    /** {@inheritDoc} */
     @Override
     public int countCompletedBySubjectId(Long subjectId) {
         String sql = "SELECT COUNT(*) FROM TASK WHERE subject_id = ? AND completed = TRUE";
