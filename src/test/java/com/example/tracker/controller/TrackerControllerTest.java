@@ -5,12 +5,14 @@ import com.example.tracker.model.SubjectSummary;
 import com.example.tracker.model.Task;
 import com.example.tracker.repository.SubjectRepository;
 import com.example.tracker.repository.TaskRepository;
+import com.example.tracker.repository.TaskStatusRepository;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
-
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -36,6 +38,9 @@ class TrackerControllerTest {
     
     @MockBean
     private TaskRepository taskRepository;
+
+    @MockBean
+    private TaskStatusRepository taskStatusRepository;
     
     @Test
     void testIndex() throws Exception {
@@ -86,9 +91,9 @@ class TrackerControllerTest {
     void testSubjectDetails() throws Exception {
         Subject subject = new Subject(1L, "数学");
         List<Task> tasks = Arrays.asList(
-            new Task(1L, 1L, "問題集1-10ページ", true),
-            new Task(2L, 1L, "問題集11-20ページ", false),
-            new Task(3L, 1L, "テスト勉強", false)
+            new Task(1L, 1L, "問題集1-10ページ", 1),
+            new Task(2L, 1L, "問題集11-20ページ", 1),
+            new Task(3L, 1L, "テスト勉強", 3)
         );
         
         when(subjectRepository.findById(1L)).thenReturn(Optional.of(subject));
@@ -146,29 +151,29 @@ class TrackerControllerTest {
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/subjects/1"));
         
-        verify(taskRepository, times(1)).insert(1L, "問題集1-10ページ");
+        verify(taskRepository, times(1)).insert(1L, "問題集1-10ページ",LocalDate.of(2026, 12, 6) , "comment");
     }
     
     @Test
     void testCompleteTask() throws Exception {
         mockMvc.perform(post("/tasks/1/complete")
                 .param("subjectId", "2")
-                .param("completed", "true"))
+                .param("completedId", "3"))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/subjects/2"));
         
-        verify(taskRepository, times(1)).updateCompleted(1L, true);
+        verify(taskRepository, times(1)).updateCompleted(1L, 3);
     }
     
     @Test
     void testCompleteTask_Uncomplete() throws Exception {
         mockMvc.perform(post("/tasks/1/complete")
                 .param("subjectId", "2")
-                .param("completed", "false"))
+                .param("completedId", "1"))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/subjects/2"));
         
-        verify(taskRepository, times(1)).updateCompleted(1L, false);
+        verify(taskRepository, times(1)).updateCompleted(1L, 1);
     }
     
     @Test

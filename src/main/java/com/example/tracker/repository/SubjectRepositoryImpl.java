@@ -57,11 +57,15 @@ public class SubjectRepositoryImpl implements SubjectRepository {
      *
      * <p>内部では以下のSQLを実行し、LEFT JOIN で TASK テーブルを集計する:</p>
      * <pre>
-     * SELECT s.id, s.name,
-     *        COUNT(t.id) as total_tasks,
-     *        SUM(CASE WHEN t.completed = TRUE THEN 1 ELSE 0 END) as completed_tasks
-     * FROM SUBJECT s LEFT JOIN TASK t ON s.id = t.subject_id
-     * GROUP BY s.id, s.name ORDER BY s.id
+     * SELECT 
+                s.id,
+                s.name,
+                COUNT(t.id) as total_tasks,
+                SUM(CASE WHEN t.completed_id= 3 THEN 1 ELSE 0 END) as completed_tasks
+            FROM SUBJECT s
+            LEFT JOIN TASK t ON s.id = t.subject_id
+            GROUP BY s.id, s.name
+            ORDER BY s.id
      * </pre>
      */
     @Override
@@ -71,7 +75,7 @@ public class SubjectRepositoryImpl implements SubjectRepository {
                 s.id,
                 s.name,
                 COUNT(t.id) as total_tasks,
-                SUM(CASE WHEN t.completed = TRUE THEN 1 ELSE 0 END) as completed_tasks
+                SUM(CASE WHEN t.completed_id= 3 THEN 1 ELSE 0 END) as completed_tasks
             FROM SUBJECT s
             LEFT JOIN TASK t ON s.id = t.subject_id
             GROUP BY s.id, s.name

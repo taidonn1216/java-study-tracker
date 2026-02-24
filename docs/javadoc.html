@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        p{
+            margin: 40px;            
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>javadocsの変更した記述</h1>
+    </header> 
+    <main>
+        <div>
+            <h2>Contoller層</h2>
+            <p>
+                科目詳細ページ（タスク一覧）を表示する。<br>
+                科目が見つからない場合は一覧ページへリダイレクトする。<br>
+                モデルに追加される属性:<br>
+                {@code subject} — 科目エンティティ<br>
+                {@code tasks} — タスク一覧<br>
+                {@code totalTasks} — タスク総数<br>
+                {@code completedTasks} — 完了済みタスク数<br>
+                {@code incompleteTasks} — 未完了タスク数<br>
+                @param id    科目ID<br>
+                @param model Spring MVC Model<br>
+                @return ビュー名 {@code "subject_details"} または {@code "/"} へのリダイレクト<br>
+                @GetMapping("/subjects/{id}")<br>
+                public String subjectDetails(@PathVariable("id") Long id, Model model)
+            </p>
+            <p>
+                指定した科目に新しいタスクを登録し、科目詳細ページへリダイレクトする。<br>
+                @param subjectId タスクを追加する科目のID<br>
+                @param title     フォームから送信されたタスクタイトル<br>
+                @return {@code "/subjects/{subjectId}"} へのリダイレクト<br>
+                @PostMapping("/subjects/{subjectId}/tasks")<br>
+                public String createTask(<br>
+                    @PathVariable("subjectId") Long subjectId,<br>
+                    @RequestParam("title") String title,<br>
+                    @RequestParam("deadline") LocalDate deadline,<br>
+                    @RequestParam("comment") String comment)
+            </p>
+            <p>
+                タスクの完了状態を更新し、科目詳細ページへリダイレクトする。<br>
+                @param taskId    更新対象のタスクID<br>
+                @param subjectId リダイレクト先の科目ID<br>
+                @param completedId 新しい完了ID（{@code 1}: 未完了、{@code 2}: 進行中、{@code 3}: (完了)<br>
+                @return {@code "/subjects/{subjectId}"} へのリダイレクト<br>
+                @PostMapping("/tasks/{taskId}/complete")<br>
+                public String completeTask(<br>
+                        @PathVariable("taskId") Long taskId,<br>
+                        @RequestParam("subjectId") Long subjectId,<br>
+                        @RequestParam("completedId") int completedId)<br>
+            </p>
+        </div>
+        <div>
+            <h2>model層</h2>
+            <h3>Task.java</h3>
+            <p>
+                全フィールド指定コンストラクタ。<br>
+                @param id タスクID<br>
+                @param subjectId 科目ID<br>
+                @param title タスクのタイトル<br>
+                @param completedId 完了フラグID（1:未完了、2:進行中、3:完了）<br>
+                @param deadline タスクの期限<br>
+                @param comment タスクのコメント<br>
+                public Task(Long id, Long subjectId, String title, int completedId)
+            </p>
+            <p>
+                完了IDを返す。<br>
+                @return 未完了の場合は {@code 1}、進行中の場合は{@code 2}、完了している場合は {@code 3}<br>
+                public int getCompletedId()
+            </p>
+            <p>
+                完了IDを設定する。<br>
+                @param completed {@code 1} で未完了、{@code 2}で進行中、{@code 3} で完了<br>
+                public void setCompletedId(int completedId)
+            </p>
+            <p>
+                完了状態を返す。<br>
+                @return 完了状態を返す<br>
+                public String getStatusName()
+            </p>
+            <p>
+                完了状態を設定する。<br>
+                @param statusName 完了状態<br>
+                public void setStatusName(String statusName)
+            </p>
+            <p>
+                期限を返す。<br>
+                @return LocalDate型で期限の日付を返す<br>
+                public LocalDate getDeadline()
+            </p>
+            <p>
+                期限を設定する。<br>
+                @param deadline LocalDate型で期限の日付を設定する<br>
+                public void setDeadline(LocalDate deadline)
+            </p>
+
+            <p>
+                タスクのコメントを返す。<br>
+                @return タスクのコメント<br>
+                public String getComment()
+            </p>
+            <p>
+                タスクのコメントを設定する。<br>
+                @param comment タスクのコメント<br>
+                public void setComment(String comment)
+            </p>
+            <p>
+                このオブジェクトの文字列表現を返す。
+                @return {@code Task{id=..., subjectId=..., title='...', completed_id=..., deadline=..., comment="..."}} 形式の文字列<br>
+                public String toString()
+            </p>
+            <h3>TaskStatus.java</h3>
+            <p>
+                全フィールド指定コンストラクタ。<br>
+                @param completedId 完了フラグiD<br>
+                public TaskStaus(int completedId)
+            </p>
+            <p>
+                完了IDを返す。<br>
+                @return 未完了の場合は {@code 1}、進行中の場合は{@code 2}、完了している場合は {@code 3}<br>
+                public int getCompletedId()
+            </p>
+            <p>
+                 完了IDを設定する。<br>
+                @param id 完了ID<br>
+                public void setCompletedId(int id)
+            </p>
+            <p>
+                完了状態を返す。<br>
+                @return 完了IDが1の時 {@code 未完了}、完了IDが2の時{@code 進行中}、完了IDが3の場合は {@code 完了}<br>
+                public String getStatus()
+            </p>
+            <p>
+                完了状態を設定する。<br>
+                @param status 完了状態<br>
+                public void setStatus(String status)
+            </p>
+            <p>
+                このオブジェクトの文字列表現を返す。<br>
+                @return {@code Completed{id=..., completed_id=...}} 形式の文字列<br>
+                public String toString()
+            </p>
+        </div>
+        <div>
+            <h2>Repository層</h2>
+            <h3>TaskRepository.java</h3>
+            <p>
+                新しいタスクを未完了状態 ({@code completed_id = 1}) で登録する。<br>
+                @param subjectId タスクを追加する科目のID<br>
+                @param title     タスクのタイトル（NULL不可）<br>
+                @param deadline  タスクの期限<br>
+                @param comment   タスクのコメント<br>
+                void insert(Long subjectId, String title, LocalDate deadline, String comment)
+            </p>
+            <p>
+                タスクの完了状態を更新する。<br>
+                @param taskId    更新対象のタスクID<br>
+                @param completedId 新しい完了状態（{@code 1}: 未完了、{@code 2}: 進行中、{@code 3}: 未完了）<br>
+                void updateCompleted(Long taskId, int completedId);
+            </p>
+            <h3>TaskStatusRepository.java</h3>
+            <p>
+                タスクの完了管理IDにと同じ完了フラグを取得する<br>
+                @param completeId 完了管理ID<br>
+                @return 完了フラグを返す<br>
+                List<TaskStaus> taskStatusRefarence(int completedId);
+            </p>
+            <p>
+                完了フラグテーブルの値がない場合、テーブルの値を挿入する<br>
+                void insertTaskStatus();
+            </p>
+        </div>
+    </main>
+</body>
+</html>

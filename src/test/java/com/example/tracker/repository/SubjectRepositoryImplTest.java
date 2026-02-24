@@ -8,9 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -18,7 +21,12 @@ import static org.junit.jupiter.api.Assertions.*;
  * SubjectRepositoryImplのテストクラス
  */
 @JdbcTest
-@Import({SubjectRepositoryImpl.class, TaskRepositoryImpl.class})
+@Transactional
+@TestPropertySource(properties = {
+    "spring.sql.init.mode=always",
+    "spring.jpa.defer-datasource-initialization=true"
+})
+@Import({SubjectRepositoryImpl.class, TaskRepositoryImpl.class, TaskStatusRepositoryImpl.class})
 class SubjectRepositoryImplTest {
     
     @Autowired
@@ -26,6 +34,9 @@ class SubjectRepositoryImplTest {
     
     @Autowired
     private TaskRepository taskRepository;
+
+    @Autowired
+    private TaskStatusRepository taskStatusRepository;
     
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -33,10 +44,18 @@ class SubjectRepositoryImplTest {
     @BeforeEach
     void setUp() {
         // テストデータをクリア
-        jdbcTemplate.execute("DELETE FROM TASK");
-        jdbcTemplate.execute("DELETE FROM SUBJECT");
-        jdbcTemplate.execute("ALTER TABLE SUBJECT ALTER COLUMN id RESTART WITH 1");
-        jdbcTemplate.execute("ALTER TABLE TASK ALTER COLUMN id RESTART WITH 1");
+        try {
+            jdbcTemplate.execute("DELETE FROM TASK");
+            jdbcTemplate.execute("DELETE FROM SUBJECT");
+            jdbcTemplate.execute("DELETE FROM COMPLETE");
+            // H2のシーケンスをリセット
+            jdbcTemplate.execute("ALTER TABLE SUBJECT ALTER COLUMN id RESTART WITH 1");
+            jdbcTemplate.execute("ALTER TABLE TASK ALTER COLUMN id RESTART WITH 1");
+            jdbcTemplate.execute("ALTER TABLE COMPLETE ALTER COLUMN completed_id RESTART WITH 1");
+        } catch (Exception e) {
+            // 初回実行時はテーブルが存在しない場合があるため、エラーを無視
+            System.out.println("Setup warning: " + e.getMessage());
+        }
     }
     
     @Test
@@ -109,11 +128,11 @@ class SubjectRepositoryImplTest {
     void testFindAllWithTaskStats_WithTasks() {
         subjectRepository.insert("数学");
         Long subjectId = subjectRepository.findAll().get(0).getId();
-        
+        taskStatusRepository.insertTaskStatus();
         // タスクを追加
-        taskRepository.insert(subjectId, "問題集1-10ページ");
-        taskRepository.insert(subjectId, "問題集11-20ページ");
-        taskRepository.insert(subjectId, "テスト勉強");
+        taskRepository.insert(subjectId, "問題集1-10ページ", LocalDate.of(2026,2,28),"");
+        taskRepository.insert(subjectId, "問題集11-20ページ", LocalDate.of(2016,2,4), "期限が過ぎている");
+        taskRepository.insert(subjectId, "テスト勉強", LocalDate.of(2026,12,4),"");
         
         // 1つのタスクを完了にする
         List<Long> taskIds = jdbcTemplate.queryForList(
@@ -121,7 +140,7 @@ class SubjectRepositoryImplTest {
             Long.class, 
             subjectId
         );
-        taskRepository.updateCompleted(taskIds.get(0), true);
+        taskRepository.updateCompleted(taskIds.get(0), 3);
         
         List<SubjectSummary> summaries = subjectRepository.findAllWithTaskStats();
         assertEquals(1, summaries.size());
