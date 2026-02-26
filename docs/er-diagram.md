@@ -25,20 +25,10 @@ erDiagram
         BIGINT id PK "AUTO_INCREMENT, タスクID"
         BIGINT subject_id FK "NOT NULL, 所属科目ID"
         VARCHAR title "NOT NULL, タスクタイトル (最大255文字)"
-        INT completed_id FK "DEFALT 1, タスク完了ID
-        " 
-        DATE deadline "締切日"
-        VARCHAR comment "コメント(最大255文字)"
-
-    }
-
-    COMPLETE{
-        INT completed_id PK "タスク完了ID"
-        VACRHAR completed "タスク完了フラグ"
+        BOOLEAN completed "DEFAULT FALSE, 完了フラグ"
     }
 
     SUBJECT ||--o{ TASK : "has / 保有する"
-    TASK ||--|| COMPLETED : "affiliation / 所属する "
 ```
 
 ## Relationship Details / リレーション詳細
@@ -57,12 +47,7 @@ erDiagram
 | TASK | `id` | Primary Key, Auto Increment | 主キー、自動採番 |
 | TASK | `subject_id` | Foreign Key → SUBJECT(id), NOT NULL, ON DELETE CASCADE | 外部キー → SUBJECT(id)、NULL不可、カスケード削除 |
 | TASK | `title` | NOT NULL, VARCHAR(255) | NULL不可、最大255文字 |
-| TASK | `completed_id` | Foreign Key → COMPLETE(co,mplete_id) INT DEFAULT 1 | デフォルト: 1 |
-| TASK | `deadline` |  DATE | 
-| TASK | `comment` | VARCHAR(255)  | 最大255文字 |
-
-| COMPLETED | `completed_id` | Primary Key INT |　タスク完了ID |
-| COMPLETED | `completed` | VARCHAR | 完了フラグ |
+| TASK | `completed` | DEFAULT FALSE | デフォルト: FALSE（未完了） |
 
 ## Notes / 備考
 

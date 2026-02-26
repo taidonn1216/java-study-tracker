@@ -1,13 +1,10 @@
 package com.example.tracker.repository;
 
 import com.example.tracker.model.Task;
-
-
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -36,13 +33,9 @@ public class TaskRepositoryImpl implements TaskRepository {
         task.setId(rs.getLong("id"));
         task.setSubjectId(rs.getLong("subject_id"));
         task.setTitle(rs.getString("title"));
-        task.setCompletedId(rs.getInt("completed_id"));
-        task.setStatusName(rs.getString("completed")); 
-        task.setDeadline(rs.getDate("deadline").toLocalDate());
-        task.setComment(rs.getString("comment"));
+        task.setCompleted(rs.getBoolean("completed"));
         return task;
     };
-
 
     /**
      * コンストラクタインジェクション。
@@ -56,33 +49,22 @@ public class TaskRepositoryImpl implements TaskRepository {
     /** {@inheritDoc} */
     @Override
     public List<Task> findBySubjectId(Long subjectId) {
-         String sql = """
-        SELECT t.id,
-               t.subject_id,
-               t.title,
-               t.completed_id,
-               t.deadline,
-               t.comment,
-               c.completed
-        FROM TASK t
-        JOIN COMPLETE c ON t.completed_id = c.completed_id
-        WHERE t.subject_id = ?
-        """;
+        String sql = "SELECT id, subject_id, title, completed FROM TASK WHERE subject_id = ? ORDER BY id";
         return jdbcTemplate.query(sql, taskRowMapper, subjectId);
     }
 
     /** {@inheritDoc} */
     @Override
-    public void insert(Long subjectId, String title, LocalDate deadline, String comment) {
-        String sql = "INSERT INTO TASK (subject_id, title, completed_id, deadline, comment) VALUES (?, ?, 1, ?, ?)";
-        jdbcTemplate.update(sql, subjectId, title, deadline, comment);
+    public void insert(Long subjectId, String title) {
+        String sql = "INSERT INTO TASK (subject_id, title, completed) VALUES (?, ?, FALSE)";
+        jdbcTemplate.update(sql, subjectId, title);
     }
 
     /** {@inheritDoc} */
     @Override
-    public void updateCompleted(Long taskId, int completedId) {
-        String sql = "UPDATE TASK SET completed_id = ? WHERE id = ?";
-        jdbcTemplate.update(sql, completedId, taskId);
+    public void updateCompleted(Long taskId, boolean completed) {
+        String sql = "UPDATE TASK SET completed = ? WHERE id = ?";
+        jdbcTemplate.update(sql, completed, taskId);
     }
 
     /** {@inheritDoc} */
@@ -103,7 +85,7 @@ public class TaskRepositoryImpl implements TaskRepository {
     /** {@inheritDoc} */
     @Override
     public int countCompletedBySubjectId(Long subjectId) {
-        String sql = "SELECT COUNT(*) FROM TASK WHERE subject_id = ? AND completed_id = 3";
+        String sql = "SELECT COUNT(*) FROM TASK WHERE subject_id = ? AND completed = TRUE";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, subjectId);
         return count != null ? count : 0;
     }

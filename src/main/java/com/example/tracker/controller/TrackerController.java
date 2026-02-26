@@ -3,18 +3,13 @@ package com.example.tracker.controller;
 import com.example.tracker.model.Subject;
 import com.example.tracker.model.SubjectSummary;
 import com.example.tracker.model.Task;
-import com.example.tracker.model.TaskStaus;
 import com.example.tracker.repository.SubjectRepository;
 import com.example.tracker.repository.TaskRepository;
-import com.example.tracker.repository.TaskStatusRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -46,19 +41,16 @@ public class TrackerController {
 
     private final SubjectRepository subjectRepository;
     private final TaskRepository taskRepository;
-    private final TaskStatusRepository taskStatusRepository;
 
     /**
      * コンストラクタインジェクション。
      *
      * @param subjectRepository 科目リポジトリ
      * @param taskRepository    タスクリポジトリ
-     * @param taskStatusRepository タスクステータスリポジトリ
      */
-    public TrackerController(SubjectRepository subjectRepository, TaskRepository taskRepository, TaskStatusRepository taskStatusRepository) {
+    public TrackerController(SubjectRepository subjectRepository, TaskRepository taskRepository) {
         this.subjectRepository = subjectRepository;
         this.taskRepository = taskRepository;
-        this.taskStatusRepository = taskStatusRepository;
     }
 
     /**
@@ -128,35 +120,14 @@ public class TrackerController {
         if (subjectOpt.isEmpty()) {
             return "redirect:/";
         }
-
-        //テーブルに値がない場合、挿入する
-        taskStatusRepository.insertTaskStatus();
-
+        
         Subject subject = subjectOpt.get();
         List<Task> tasks = taskRepository.findBySubjectId(id);
         
-        //taskstatusのマップを作製
-        Map<Integer, String> taskStatuses = new HashMap<>();
-        
-        //taskごとに処理を行う
-        for (Task task : tasks) {
-            //taskの完了IDを取得
-            Integer completedIdObj = task.getCompletedId();
-            //完了IDをint型に変換
-            int completedId = completedIdObj.intValue();
-            //完了IDに応じて完了フラグを返す
-            List<TaskStaus> status = taskStatusRepository.taskStatusRefarence(completedId);
-            //完了フラグをString型に変換
-            String statusString = String.valueOf(status);
-            //マップに挿入
-            taskStatuses.put(task.getCompletedId(), statusString);
-        }
-        model.addAttribute("taskStatuses", taskStatuses);
-        
         // タスク統計を計算
         long totalTasks = tasks.size();
-        long completedTasks = tasks.stream().filter(task -> task.getCompletedId() == 3).count();
-        long incompleteTasks = tasks.stream().filter(task -> task.getCompletedId() == 1).count();
+        long completedTasks = tasks.stream().filter(task -> Boolean.TRUE.equals(task.getCompleted())).count();
+        long incompleteTasks = totalTasks - completedTasks;
         
         model.addAttribute("subject", subject);
         model.addAttribute("tasks", tasks);
@@ -177,10 +148,8 @@ public class TrackerController {
     @PostMapping("/subjects/{subjectId}/tasks")
     public String createTask(
             @PathVariable("subjectId") Long subjectId,
-            @RequestParam("title") String title,
-            @RequestParam("deadline") LocalDate deadline,
-            @RequestParam("comment") String comment) {
-        taskRepository.insert(subjectId, title, deadline, comment);
+            @RequestParam("title") String title) {
+        taskRepository.insert(subjectId, title);
         return "redirect:/subjects/" + subjectId;
     }
     
@@ -189,16 +158,15 @@ public class TrackerController {
      *
      * @param taskId    更新対象のタスクID
      * @param subjectId リダイレクト先の科目ID
-     * @param completedId 新しい完了ID（{@code 1}: 未完了、{@code 2}: 進行中、{@code 3}: 完了)
+     * @param completed 新しい完了状態（{@code true}: 完了、{@code false}: 未完了）
      * @return {@code "/subjects/{subjectId}"} へのリダイレクト
      */
     @PostMapping("/tasks/{taskId}/complete")
     public String completeTask(
             @PathVariable("taskId") Long taskId,
             @RequestParam("subjectId") Long subjectId,
-            @RequestParam("completedId") int completedId) {
-        taskRepository.updateCompleted(taskId, completedId);
-
+            @RequestParam("completed") boolean completed) {
+        taskRepository.updateCompleted(taskId, completed);
         return "redirect:/subjects/" + subjectId;
     }
     

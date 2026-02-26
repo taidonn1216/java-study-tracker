@@ -1,7 +1,5 @@
 package com.example.tracker.model;
 
-import java.time.LocalDate;
-
 /**
  * タスク（Task）を表すドメインクラス。
  *
@@ -14,12 +12,8 @@ import java.time.LocalDate;
  *     id         BIGINT AUTO_INCREMENT PRIMARY KEY,
  *     subject_id BIGINT NOT NULL,
  *     title      VARCHAR(255) NOT NULL,
- *     completed_id INT DEFAULT 1,
- *     deadline DATE,
- *     comment VARCHAR(255),
+ *     completed  BOOLEAN DEFAULT FALSE,
  *     FOREIGN KEY (subject_id) REFERENCES SUBJECT(id) ON DELETE CASCADE
- *     FOREIGN KEY (completed_id) REFERENCES COMPLETE(completed_id)
-    );
  * );
  * </pre>
  *
@@ -28,7 +22,6 @@ import java.time.LocalDate;
  * @since 1.0
  * @see Subject
  */
-
 public class Task {
 
     /** タスクID（主キー、自動採番） */
@@ -40,38 +33,30 @@ public class Task {
     /** タスクのタイトル */
     private String title;
 
-    /** 完了フラグID（{@code 1}: 未完了、{@code 2}: 進行中、{@code 3} : 完了） */
-    private int completedId;
-    
-    /** タスクの完了フラグ */
-    private String statusName;
-    
-    /** タスクの期限 */
-    private LocalDate deadline;
-    
-    /** タスクのコメント */
-    private String comment;
-    
+    /** 完了フラグ（{@code true}: 完了、{@code false}: 未完了） */
+    private Boolean completed;
+
     /**
      * デフォルトコンストラクタ。
      */
-    public Task(){
+    public Task() {
     }
-        /**
+
+    /**
      * 全フィールド指定コンストラクタ。
-     * @param id タスクID
-     * @param subjectId 科目ID
-     * @param title タスクのタイトル
-     * @param completedId 完了フラグID（1:未完了、2:進行中、3:完了）
-     * @param deadline タスクの期限
-     * @param comment タスクのコメント
+     *
+     * @param id        タスクID
+     * @param subjectId 所属する科目のID
+     * @param title     タスクのタイトル
+     * @param completed 完了フラグ
      */
-    public Task(Long id, Long subjectId, String title, int completedId) {
+    public Task(Long id, Long subjectId, String title, Boolean completed) {
         this.id = id;
         this.subjectId = subjectId;
         this.title = title;
-        this.completedId = completedId;
+        this.completed = completed;
     }
+
     /**
      * タスクIDを返す。
      *
@@ -127,81 +112,27 @@ public class Task {
     }
 
     /**
-     * 完了IDを返す。
-     *
-     * @return 未完了の場合は {@code 1}、進行中の場合は{@code 2}、完了している場合は {@code 3}
-     */
-    public int getCompletedId() {
-        return completedId;
-    }
-
-    /**
-     * 完了IDを設定する。
-     *
-     * @param completed {@code 1} で未完了、{@code 2}で進行中、{@code 3} で完了
-     */
-    public void setCompletedId(int completedId) {
-        this.completedId = completedId;
-    }
-
-    /**
      * 完了状態を返す。
      *
-     * @return 完了状態を返す
+     * @return 完了している場合は {@code true}、未完了の場合は {@code false}
      */
-    public String getStatusName() {
-        return statusName;
+    public Boolean getCompleted() {
+        return completed;
     }
-    
+
     /**
      * 完了状態を設定する。
      *
-     * @param statusName 完了状態
+     * @param completed {@code true} で完了、{@code false} で未完了
      */
-    public void setStatusName(String statusName) {
-        this.statusName = statusName;
-    }
-    
-    /**
-     * 期限を返す。
-     *
-     * @return LocalDate型で期限の日付を返す
-     */
-    public LocalDate getDeadline(){
-        return deadline;
-    }
-
-    /**
-     * 期限を設定する。
-     *
-     * @param deadline LocalDate型で期限の日付を設定する
-     */
-    public void setDeadline(LocalDate deadline){
-        this.deadline = deadline;
-    }
-    
-    /**
-     * タスクのコメントを返す。
-     *
-     * @return タスクのコメント
-     */
-    public String getComment(){
-        return comment;
-    }
-    
-    /**
-     * タスクのコメントを設定する。
-     *
-     * @param comment タスクのコメント
-     */
-    public void setComment(String comment){
-        this.comment = comment;
+    public void setCompleted(Boolean completed) {
+        this.completed = completed;
     }
 
     /**
      * このオブジェクトの文字列表現を返す。
      *
-     * @return {@code Task{id=..., subjectId=..., title='...', completed_id=..., deadline=..., comment="..."}} 形式の文字列
+     * @return {@code Task{id=..., subjectId=..., title='...', completed=...}} 形式の文字列
      */
     @Override
     public String toString() {
@@ -209,9 +140,7 @@ public class Task {
                 "id=" + id +
                 ", subjectId=" + subjectId +
                 ", title='" + title + '\'' +
-                ", completed_id=" + completedId +
-                ", deadline=" + deadline +
-                ", comment=" + comment +
+                ", completed=" + completed +
                 '}';
     }
 }
