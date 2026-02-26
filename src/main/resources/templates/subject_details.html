@@ -56,55 +56,26 @@
         
         .add-task-form h2 {
             color: #495057;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             font-size: 1.3em;
         }
         
         .form-group {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             align-items: center;
         }
-
-        .form-group label{
-            color: #495057;
-        }
         
-        .form-wrapper{
-            display: flex;
-            flex-direction: column;
-            width:100%;
-        }
-
-        .deadline-wrapper{
-            display: flex;
-        }
-
-        .deadline-wrapper label{
-            padding-top:10px;
-        }
-
-        input[type="text"]{
+        input[type="text"] {
             flex: 1;
-            width: 100%;
-            margin:15px 0;
             padding: 12px 15px;
             border: 2px solid #dee2e6;
             border-radius: 6px;
             font-size: 1em;
             transition: border-color 0.3s;
         }
-
-        input[type="date"]{
-            width:30%;
-            max-width:300px;
-            min-width:50px;
-            margin-left: 30px;
-            padding: 12px 15px;
-            border: 2px solid #dee2e6;
-            border-radius: 6px;
-        }
-        input[type="text"]:focus{
+        
+        input[type="text"]:focus {
             outline: none;
             border-color: #667eea;
         }
@@ -127,17 +98,6 @@
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-        
-        .btn-warning {
-            background: #ffc107;
-            color: #333;
-            padding: 8px 16px;
-            font-size: 0.9em;
-        }
-
-        .btn-warning:hover {
-            background: #e0a800;
         }
         
         .btn-success {
@@ -210,12 +170,12 @@
             font-size: 1.5em;
         }
         
-        .task-title, .task-deadline, task-comment{
+        .task-title {
             font-size: 1.1em;
             color: #333;
         }
         
-        .task-item.completed .task-title, .task-item.completed .task-deadline, .task-item.completed .task-comment{
+        .task-item.completed .task-title {
             text-decoration: line-through;
             color: #6c757d;
         }
@@ -285,24 +245,12 @@
             <h2>新しいタスクを追加</h2>
             <form th:action="@{/subjects/{id}/tasks(id=${subject.id})}" method="post">
                 <div class="form-group">
-                    <div class="form-wrapper">
-                        <input type="text" name="title" placeholder="タスク名を入力してください (例: 第3章を読む)" required>
-                        <div class="deadline-wrapper">
-                            <label for="deadline">期限</label>
-                            <input type="date" name="deadline" id="deadline">
-                        </div>
-                        <input type="text" name="comment" placeholder="コメントを入力してください">
-                    </div>
+                    <input type="text" name="title" placeholder="タスク名を入力してください (例: 第3章を読む)" required>
                     <button type="submit" class="btn btn-primary">追加</button>
                 </div>
             </form>
         </div>
-        <div class="filter-buttons" style="margin-bottom: 20px;">
-            <button class="btn btn-primary filter-btn" data-filter="all">すべて</button>
-            <button class="btn btn-secondary filter-btn" data-filter="1">未完了</button>
-            <button class="btn btn-warning filter-btn" data-filter="2">進行中</button>
-            <button class="btn btn-success filter-btn" data-filter="3">完了</button>
-        </div>
+        
         <!-- タスク一覧 -->
         <div th:if="${#lists.isEmpty(tasks)}" class="empty-state">
             <p>📋 まだタスクが登録されていません</p>
@@ -310,24 +258,22 @@
         </div>
         
         <ul class="tasks-list" th:if="${!#lists.isEmpty(tasks)}">
-           <li class="task-item" th:each="task : ${tasks}" 
-                th:classappend="${task.completedId == 3} ? 'completed' : ${task.completedId == 2} ? 'now': 'notcompleted'"
-                th:attr="data-status=${task.completedId}">
+            <li class="task-item" th:each="task : ${tasks}" 
+                th:classappend="${task.completed} ? 'completed' : ''">
                 <div class="task-content">
-                    <span class="task-status" th:text="${task.completedId == 3} ? '✅' : '⬜'">⬜</span>
+                    <span class="task-status" th:text="${task.completed} ? '✅' : '⬜'">⬜</span>
                     <span class="task-title" th:text="${task.title}">タスク名</span>
-                    <span class="task-deadline" th:text="${task.deadline}">締め切り</span>
-                    <span class="task-comment" th:text="${task.comment}">コメント</span>
                 </div>
                 
                 <div class="task-actions">
-                    <!-- 完了/進行中/未完了トグルボタン -->
+                    <!-- 完了/未完了トグルボタン -->
                     <form th:action="@{/tasks/{taskId}/complete(taskId=${task.id})}" method="post">
                         <input type="hidden" name="subjectId" th:value="${subject.id}">
-                        <input type="hidden" name="completedId" th:value="${task.completedId == 1 ? 2 : task.completedId == 2 ? 3 : 1}">
+                        <input type="hidden" name="completed" th:value="${!task.completed}">
                         <button type="submit" class="btn" 
-                                th:classappend="${task.completedId == 1 ? 'btn-secondary' : task.completedId == 2 ? 'btn-warning' : 'btn-success'}"
-                                th:text="${task.statusName}">
+                                th:classappend="${task.completed} ? 'btn-secondary' : 'btn-success'"
+                                th:text="${task.completed} ? '未完了に戻す' : '完了にする'">
+                            完了にする
                         </button>
                     </form>
                     
@@ -343,31 +289,3 @@
     </div>
 </body>
 </html>
-<script>
-    //完了したタスクを未完了に戻すときにアラートを出す
-    addEventListener("load", function(){
-        let btn = document.querySelectorAll(".btn-success");
-        for(let i = 0; i < btn.length; i++){
-            btn[i].addEventListener("click", function(){
-                alert("本当に未完了にしますか?");
-            })
-        }
-        //document.querySelectorAll(".filter-btn").forEach((btnTask) => {
-        //    btnTask.addEventListener("click" , () => {
-        //        filterTask(btnTask.dataset.filter);
-        //    })
-        //})
-        
-    });
-    function filterTask(taskStatusBtn){
-        if(taskStatusBtn == 1){
-            let taskCompletedList =  document.querySelectorAll(".completed");
-            let taskNowList = document.querySelectorAll(".now");
-            let taskNotCompletedList = document.querySelectorAll(".notcompleted");
-            taskCompletedList.forEach(taskCompleted => {
-                taskCompleted.style.display = "none";
-            })
-        }
-    }
-
-</script>
