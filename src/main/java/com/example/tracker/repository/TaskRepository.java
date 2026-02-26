@@ -1,6 +1,9 @@
 package com.example.tracker.repository;
 
 import com.example.tracker.model.Task;
+import com.example.tracker.model.TaskStaus;
+
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -25,20 +28,22 @@ public interface TaskRepository {
     List<Task> findBySubjectId(Long subjectId);
 
     /**
-     * 新しいタスクを未完了状態 ({@code completed = FALSE}) で登録する。
+     * 新しいタスクを未完了状態 ({@code completed_id = 1}) で登録する。
      *
      * @param subjectId タスクを追加する科目のID
      * @param title     タスクのタイトル（NULL不可）
+     * @param deadline  タスクの期限
+     * @param comment   タスクのコメント
      */
-    void insert(Long subjectId, String title);
+    void insert(Long subjectId, String title, LocalDate deadline, String comment);
 
     /**
      * タスクの完了状態を更新する。
      *
      * @param taskId    更新対象のタスクID
-     * @param completed 新しい完了状態（{@code true}: 完了、{@code false}: 未完了）
+     * @param completedId 新しい完了状態（{@code 1}: 未完了、{@code 2}: 進行中、{@code 3}: 未完了）
      */
-    void updateCompleted(Long taskId, boolean completed);
+    void updateCompleted(Long taskId, int completedId);
 
     /**
      * 指定したIDのタスクを削除する。
