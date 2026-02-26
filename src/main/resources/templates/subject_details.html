@@ -311,7 +311,7 @@
         
         <ul class="tasks-list" th:if="${!#lists.isEmpty(tasks)}">
            <li class="task-item" th:each="task : ${tasks}" 
-                th:classappend="${task.completedId == 3} ? 'completed' : ''"
+                th:classappend="${task.completedId == 3} ? 'completed' : ${task.completedId == 2} ? 'now': 'notcompleted'"
                 th:attr="data-status=${task.completedId}">
                 <div class="task-content">
                     <span class="task-status" th:text="${task.completedId == 3} ? '✅' : '⬜'">⬜</span>
@@ -352,5 +352,22 @@
                 alert("本当に未完了にしますか?");
             })
         }
+        //document.querySelectorAll(".filter-btn").forEach((btnTask) => {
+        //    btnTask.addEventListener("click" , () => {
+        //        filterTask(btnTask.dataset.filter);
+        //    })
+        //})
+        
     });
+    function filterTask(taskStatusBtn){
+        if(taskStatusBtn == 1){
+            let taskCompletedList =  document.querySelectorAll(".completed");
+            let taskNowList = document.querySelectorAll(".now");
+            let taskNotCompletedList = document.querySelectorAll(".notcompleted");
+            taskCompletedList.forEach(taskCompleted => {
+                taskCompleted.style.display = "none";
+            })
+        }
+    }
+
 </script>
