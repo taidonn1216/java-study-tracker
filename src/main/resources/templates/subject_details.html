@@ -132,6 +132,23 @@
         .btn-danger:hover {
             background: #c82333;
         }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+            padding: 8px 16px;
+            font-size: 0.9em;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        
+        .task-status-label {
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
         
         .tasks-list {
             list-style: none;
@@ -246,8 +263,19 @@
             <form th:action="@{/subjects/{id}/tasks(id=${subject.id})}" method="post">
                 <div class="form-group">
                     <input type="text" name="title" placeholder="タスク名を入力してください (例: 第3章を読む)" required>
+                    <select name="status">
+                        <option value="未着手">未着手</option>
+                        <option value="進行中" selected>進行中</option>
+                        <option value="完了">完了</option>
+                    </select>
+                    <input type="date" name="deadline" required>
                     <button type="submit" class="btn btn-primary">追加</button>
                 </div>
+                    
+                <div style="margin-top: 10px;">
+                    <textarea name="reflection" placeholder="振り返りを記入してください" 
+                              style="width: 100%; height: 60px; padding: 10px; border-radius: 6px; border: 2px solid #dee2e6; font-family: inherit;"></textarea>
+                </div>    
             </form>
         </div>
         
@@ -261,19 +289,25 @@
             <li class="task-item" th:each="task : ${tasks}" 
                 th:classappend="${task.completed} ? 'completed' : ''">
                 <div class="task-content">
-                    <span class="task-status" th:text="${task.completed} ? '✅' : '⬜'">⬜</span>
+                    <span class="task-status"
+                    th:text="${task.status == '完了'} ? '✅' : (${task.status == '進行中'} ? '🔄' : '⬜')">⬜</span>
                     <span class="task-title" th:text="${task.title}">タスク名</span>
+                    <span class="task-status-label" 
+                          th:text="'[' + ${task.status} + ']'"
+                          th:style="${task.status == '完了'} ? 'color: #28a745;' : (${task.status == '進行中'} ? 'color: #ffc107;' : 'color: #6c757d;')">
+                        [未着手]
+                    </span>
                 </div>
                 
                 <div class="task-actions">
-                    <!-- 完了/未完了トグルボタン -->
-                    <form th:action="@{/tasks/{taskId}/complete(taskId=${task.id})}" method="post">
+                    <!-- ステータス遷移ボタン -->
+                    <form th:action="@{/tasks/{taskId}/status(taskId=${task.id})}" method="post">
                         <input type="hidden" name="subjectId" th:value="${subject.id}">
-                        <input type="hidden" name="completed" th:value="${!task.completed}">
+                        <input type="hidden" name="currentStatus" th:value="${task.status}">
                         <button type="submit" class="btn" 
-                                th:classappend="${task.completed} ? 'btn-secondary' : 'btn-success'"
-                                th:text="${task.completed} ? '未完了に戻す' : '完了にする'">
-                            完了にする
+                                th:classappend="${task.status == '未着手'} ? 'btn-secondary' : (${task.status == '進行中'} ? 'btn-warning' : 'btn-success')"
+                                th:text="${task.status == '未着手'} ? '進行中にする' : (${task.status == '進行中'} ? '完了にする' : '未着手に戻す')">
+                            次へ
                         </button>
                     </form>
                     

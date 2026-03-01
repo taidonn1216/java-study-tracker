@@ -142,11 +142,14 @@ class TrackerControllerTest {
     @Test
     void testCreateTask() throws Exception {
         mockMvc.perform(post("/subjects/1/tasks")
-                .param("title", "問題集1-10ページ"))
+                .param("title", "問題集1-10ページ")
+                .param("status", "進行中")      
+                .param("deadline", "2026-02-27") 
+                .param("reflection", "頑張る"))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/subjects/1"));
         
-        verify(taskRepository, times(1)).insert(1L, "問題集1-10ページ");
+        verify(taskRepository, times(1)).insert(eq(1L), eq( "問題集1-10ページ"), eq("進行中"), eq("2026-02-27"), eq("頑張る"));
     }
     
     @Test

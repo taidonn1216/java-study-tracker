@@ -34,6 +34,9 @@ public class TaskRepositoryImpl implements TaskRepository {
         task.setSubjectId(rs.getLong("subject_id"));
         task.setTitle(rs.getString("title"));
         task.setCompleted(rs.getBoolean("completed"));
+        task.setStatus(rs.getString("status"));
+        task.setDeadline(rs.getDate("deadline").toLocalDate());
+        task.setReflection(rs.getString("reflection"));
         return task;
     };
 
@@ -49,15 +52,15 @@ public class TaskRepositoryImpl implements TaskRepository {
     /** {@inheritDoc} */
     @Override
     public List<Task> findBySubjectId(Long subjectId) {
-        String sql = "SELECT id, subject_id, title, completed FROM TASK WHERE subject_id = ? ORDER BY id";
+        String sql = "SELECT id, subject_id, title, completed, status, deadline, reflection  FROM TASK WHERE subject_id = ? ORDER BY id";
         return jdbcTemplate.query(sql, taskRowMapper, subjectId);
     }
 
     /** {@inheritDoc} */
     @Override
-    public void insert(Long subjectId, String title) {
-        String sql = "INSERT INTO TASK (subject_id, title, completed) VALUES (?, ?, FALSE)";
-        jdbcTemplate.update(sql, subjectId, title);
+    public void insert(Long subjectId, String title, String status, String deadline, String reflection) {
+        String sql = "INSERT INTO TASK (subject_id, title, completed, status, deadline, reflection) VALUES (?, ?, FALSE, ?, ?, ?)";
+        jdbcTemplate.update(sql, subjectId, title, status, deadline, reflection);
     }
 
     /** {@inheritDoc} */
@@ -89,4 +92,12 @@ public class TaskRepositoryImpl implements TaskRepository {
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, subjectId);
         return count != null ? count : 0;
     }
+
+    /** {@inheritDoc} */
+    @Override
+    public void updateStatus(Long taskId, String status, boolean completed) {
+        String sql = "UPDATE TASK SET status = ?, completed = ? WHERE id = ?";
+        jdbcTemplate.update(sql, status, completed, taskId);
+    }
+
 }

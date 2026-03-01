@@ -1,5 +1,7 @@
 package com.example.tracker.model;
 
+import java.time.LocalDate;
+
 /**
  * タスク（Task）を表すドメインクラス。
  *
@@ -35,6 +37,16 @@ public class Task {
 
     /** 完了フラグ（{@code true}: 完了、{@code false}: 未完了） */
     private Boolean completed;
+
+     /** ステータス（未着手、進行中、完了） */
+    private String status;
+
+    /** 期限日 */
+    private LocalDate deadline;
+
+    /** 完了時の学び・振り返り */
+    private String reflection;
+
 
     /**
      * デフォルトコンストラクタ。
@@ -142,5 +154,52 @@ public class Task {
                 ", title='" + title + '\'' +
                 ", completed=" + completed +
                 '}';
+    }
+    /**
+     * ステータスを返す。
+     * @return ステータス {未着手、進行中、完了いずれかを返す}
+     */
+    public String getStatus() {
+        return status;
+    }
+
+    /**
+     * ステータスの設定を受け取る
+     * @param status 未着手、進行中、完了いずれかを受け取りstatusに代入する。
+     */
+    public void setStatus(String status) {
+        this.status = status;
+    }
+    
+    /**
+     * 期限日を返す。
+     * @return 期限日 {年・月・日を返す}
+     */
+    public LocalDate getDeadline() {
+        return deadline;
+    }
+
+    /**
+     * 期限の設定を受け取る。
+     * @param deadline 年・月・日を受け取りdeadlineに代入する。
+     */
+    public void setDeadline(LocalDate deadline) {
+        this.deadline = deadline;
+    }
+
+    /**
+     * 完了時の学び・振り返りを返す。
+     * @return　書いてくれたもの {文字}
+     */
+    public String  getReflection() {
+        return reflection;
+    }
+
+    /**
+     * 完了時の学び・振り返りの設定を受け取る。
+     * @param reflection 書いてくれたものをreflectionに代入する。
+     */
+    public void setReflection(String reflection) {
+        this.reflection = reflection;
     }
 }

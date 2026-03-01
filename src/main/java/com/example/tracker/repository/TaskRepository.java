@@ -29,8 +29,11 @@ public interface TaskRepository {
      *
      * @param subjectId タスクを追加する科目のID
      * @param title     タスクのタイトル（NULL不可）
+     * @param status     タスクのステータス
+     * @param deadline   タスクの期限
+     * @param reflection タスクの振り返り
      */
-    void insert(Long subjectId, String title);
+    void insert(Long subjectId, String titleString ,String status, String deadline, String reflection);
 
     /**
      * タスクの完了状態を更新する。
@@ -62,4 +65,13 @@ public interface TaskRepository {
      * @return 完了済みタスク数
      */
     int countCompletedBySubjectId(Long subjectId);
+
+    /**
+     * タスクのステータスと完了状態を更新する。
+     *
+     * @param taskId    更新対象のタスクID
+     * @param status    新しいステータス（未着手、進行中、完了）
+     * @param completed 新しい完了状態
+     */
+    void updateStatus(Long taskId, String status, boolean completed);
 }

@@ -143,30 +143,20 @@ public class TrackerController {
      *
      * @param subjectId タスクを追加する科目のID
      * @param title     フォームから送信されたタスクタイトル
+     * @param status     フォームから送信されたステータス
+     * @param deadline   フォームから送信された期限
+     * @param reflection フォームから送信された振り返り内容
      * @return {@code "/subjects/{subjectId}"} へのリダイレクト
      */
     @PostMapping("/subjects/{subjectId}/tasks")
     public String createTask(
             @PathVariable("subjectId") Long subjectId,
-            @RequestParam("title") String title) {
-        taskRepository.insert(subjectId, title);
-        return "redirect:/subjects/" + subjectId;
-    }
-    
-    /**
-     * タスクの完了状態を更新し、科目詳細ページへリダイレクトする。
-     *
-     * @param taskId    更新対象のタスクID
-     * @param subjectId リダイレクト先の科目ID
-     * @param completed 新しい完了状態（{@code true}: 完了、{@code false}: 未完了）
-     * @return {@code "/subjects/{subjectId}"} へのリダイレクト
-     */
-    @PostMapping("/tasks/{taskId}/complete")
-    public String completeTask(
-            @PathVariable("taskId") Long taskId,
-            @RequestParam("subjectId") Long subjectId,
-            @RequestParam("completed") boolean completed) {
-        taskRepository.updateCompleted(taskId, completed);
+            @RequestParam("title") String title,
+            @RequestParam("status") String status,       
+            @RequestParam("deadline") String deadline,   
+            @RequestParam("reflection") String reflection 
+        ) {
+        taskRepository.insert(subjectId, title, status, deadline, reflection);
         return "redirect:/subjects/" + subjectId;
     }
     
@@ -184,4 +174,58 @@ public class TrackerController {
         taskRepository.deleteById(taskId);
         return "redirect:/subjects/" + subjectId;
     }
+    
+    /**
+     * タスクのステータスを次の状態に更新し、科目詳細ページへリダイレクトする。
+     * 
+     * <p>遷移順序: 未着手 → 進行中 → 完了 → 未着手</p>
+     *
+     * @param taskId    更新対象のタスクID
+     * @param subjectId リダイレクト先の科目ID
+     * @param currentStatus 現在のステータス
+     * @return {@code "/subjects/{subjectId}"} へのリダイレクト
+     */
+    @PostMapping("/tasks/{taskId}/status")
+    public String completeTask(
+            @PathVariable("taskId") Long taskId,
+            @RequestParam("subjectId") Long subjectId,
+            @RequestParam("currentStatus") String currentStatus) {
+        
+        String nextStatus;
+        boolean completed;
+        
+        switch (currentStatus) {
+            case "未着手":
+                nextStatus = "進行中";
+                completed = false;
+                break;
+            case "進行中":
+                nextStatus = "完了";
+                completed = true;
+                break;
+            case "完了":
+                nextStatus = "未着手";
+                completed = false;
+                break;
+            default:
+                nextStatus = "進行中";
+                completed = false;
+        }
+        
+        taskRepository.updateStatus(taskId, nextStatus, completed);
+        return "redirect:/subjects/" + subjectId;
+    }
+
+    /**
+     * 完了状態のみ切り替える（テスト互換用）
+     */
+    @PostMapping("/tasks/{taskId}/complete")
+    public String toggleCompleteTask(
+            @PathVariable("taskId") Long taskId,
+            @RequestParam("subjectId") Long subjectId,
+            @RequestParam("completed") boolean completed) {
+        taskRepository.updateCompleted(taskId, completed);
+        return "redirect:/subjects/" + subjectId;
+    }
+
 }

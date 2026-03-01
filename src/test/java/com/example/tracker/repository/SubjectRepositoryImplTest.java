@@ -111,9 +111,9 @@ class SubjectRepositoryImplTest {
         Long subjectId = subjectRepository.findAll().get(0).getId();
         
         // タスクを追加
-        taskRepository.insert(subjectId, "問題集1-10ページ");
-        taskRepository.insert(subjectId, "問題集11-20ページ");
-        taskRepository.insert(subjectId, "テスト勉強");
+        taskRepository.insert(subjectId, "問題集1-10ページ", "未着手", "2026-03-01", "");
+        taskRepository.insert(subjectId, "問題集11-20ページ", "未着手", "2026-03-01", "");
+        taskRepository.insert(subjectId, "テスト勉強", "未着手", "2026-03-01", "");
         
         // 1つのタスクを完了にする
         List<Long> taskIds = jdbcTemplate.queryForList(
