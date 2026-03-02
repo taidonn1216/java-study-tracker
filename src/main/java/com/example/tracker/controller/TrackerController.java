@@ -217,8 +217,17 @@ public class TrackerController {
         return "redirect:/subjects/" + subjectId;
     }
 
-    /**
-     * 完了状態のみ切り替える（テスト互換用）
+     /**
+     * 旧UI／既存テスト互換の完了トグルエンドポイント。
+     *
+     * <p>画面では {@code /tasks/{taskId}/status} を利用しているが、
+     * {@link com.example.tracker.controller.TrackerControllerTest} が
+     * 完了フラグのみ更新するこの経路を呼び出すため公開している。</p>
+     *
+     * @param taskId    更新対象のタスクID
+     * @param subjectId リダイレクト先の科目ID
+     * @param completed 新しい完了状態
+     * @return {@code "/subjects/{subjectId}"} へのリダイレクト
      */
     @PostMapping("/tasks/{taskId}/complete")
     public String toggleCompleteTask(
@@ -228,5 +237,4 @@ public class TrackerController {
         taskRepository.updateCompleted(taskId, completed);
         return "redirect:/subjects/" + subjectId;
     }
-
 }
