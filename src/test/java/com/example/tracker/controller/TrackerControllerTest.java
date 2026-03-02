@@ -11,6 +11,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -149,7 +150,7 @@ class TrackerControllerTest {
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/subjects/1"));
         
-        verify(taskRepository, times(1)).insert(eq(1L), eq( "問題集1-10ページ"), eq("進行中"), eq("2026-02-27"), eq("頑張る"));
+        verify(taskRepository, times(1)).insert(eq(1L), eq( "問題集1-10ページ"), eq("進行中"), eq(LocalDate.parse("2026-02-27")), eq("頑張る"));
     }
     
     @Test

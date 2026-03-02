@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -156,7 +157,7 @@ public class TrackerController {
             @RequestParam("deadline") String deadline,   
             @RequestParam("reflection") String reflection 
         ) {
-        taskRepository.insert(subjectId, title, status, deadline, reflection);
+        taskRepository.insert(subjectId, title, status,  LocalDate.parse(deadline), reflection);
         return "redirect:/subjects/" + subjectId;
     }
     

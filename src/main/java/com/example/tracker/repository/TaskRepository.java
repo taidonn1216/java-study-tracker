@@ -1,6 +1,8 @@
 package com.example.tracker.repository;
 
 import com.example.tracker.model.Task;
+
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -33,7 +35,7 @@ public interface TaskRepository {
      * @param deadline   タスクの期限
      * @param reflection タスクの振り返り
      */
-    void insert(Long subjectId, String title ,String status, String deadline, String reflection);
+    void insert(Long subjectId, String title ,String status, LocalDate deadline, String reflection);
 
     /**
      * タスクの完了状態を更新する。

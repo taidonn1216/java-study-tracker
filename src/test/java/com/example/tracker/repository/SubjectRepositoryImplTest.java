@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -111,9 +112,9 @@ class SubjectRepositoryImplTest {
         Long subjectId = subjectRepository.findAll().get(0).getId();
         
         // タスクを追加
-        taskRepository.insert(subjectId, "問題集1-10ページ", "未着手", "2026-03-01", "");
-        taskRepository.insert(subjectId, "問題集11-20ページ", "未着手", "2026-03-01", "");
-        taskRepository.insert(subjectId, "テスト勉強", "未着手", "2026-03-01", "");
+        taskRepository.insert(subjectId, "問題集1-10ページ", "未着手", LocalDate.parse("2026-03-01"), "");
+        taskRepository.insert(subjectId, "問題集11-20ページ", "未着手", LocalDate.parse("2026-03-01"), "");
+        taskRepository.insert(subjectId, "テスト勉強", "未着手", LocalDate.parse("2026-03-01"), "");
         
         // 1つのタスクを完了にする
         List<Long> taskIds = jdbcTemplate.queryForList(

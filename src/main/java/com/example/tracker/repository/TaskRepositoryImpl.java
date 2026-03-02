@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -35,7 +36,7 @@ public class TaskRepositoryImpl implements TaskRepository {
         task.setTitle(rs.getString("title"));
         task.setCompleted(rs.getBoolean("completed"));
         task.setStatus(rs.getString("status"));
-        task.setDeadline(rs.getDate("deadline").toLocalDate());
+        task.setDeadline(rs.getObject("deadline", LocalDate.class));
         task.setReflection(rs.getString("reflection"));
         return task;
     };
@@ -58,7 +59,7 @@ public class TaskRepositoryImpl implements TaskRepository {
 
     /** {@inheritDoc} */
     @Override
-    public void insert(Long subjectId, String title, String status, String deadline, String reflection) {
+    public void insert(Long subjectId, String title, String status, LocalDate deadline, String reflection) {
         String sql = "INSERT INTO TASK (subject_id, title, completed, status, deadline, reflection) VALUES (?, ?, FALSE, ?, ?, ?)";
         jdbcTemplate.update(sql, subjectId, title, status, deadline, reflection);
     }
