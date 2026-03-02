@@ -33,7 +33,7 @@ public interface TaskRepository {
      * @param deadline   タスクの期限
      * @param reflection タスクの振り返り
      */
-    void insert(Long subjectId, String titleString ,String status, String deadline, String reflection);
+    void insert(Long subjectId, String title ,String status, String deadline, String reflection);
 
     /**
      * タスクの完了状態を更新する。

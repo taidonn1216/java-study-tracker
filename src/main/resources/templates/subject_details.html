@@ -292,13 +292,24 @@
                     <span class="task-status"
                     th:text="${task.status == '完了'} ? '✅' : (${task.status == '進行中'} ? '🔄' : '⬜')">⬜</span>
                     <span class="task-title" th:text="${task.title}">タスク名</span>
+                    <span class="task-deadline"
+                          th:if="${task.deadline != null}"
+                          th:text="${#temporals.format(task.deadline, 'yyyy/MM/dd')}">
+                        2026/02/26
+                    </span>
                     <span class="task-status-label" 
                           th:text="'[' + ${task.status} + ']'"
                           th:style="${task.status == '完了'} ? 'color: #28a745;' : (${task.status == '進行中'} ? 'color: #ffc107;' : 'color: #6c757d;')">
                         [未着手]
                     </span>
                 </div>
-                
+                <p class="task-reflection"
+                   th:if="${task.reflection != null
+                           and !#strings.isEmpty(task.reflection)
+                           and !#strings.equals(task.reflection, '記入してください')}"
+                   th:text="${task.reflection}">
+                    振り返りテキスト
+                </p>
                 <div class="task-actions">
                     <!-- ステータス遷移ボタン -->
                     <form th:action="@{/tasks/{taskId}/status(taskId=${task.id})}" method="post">
