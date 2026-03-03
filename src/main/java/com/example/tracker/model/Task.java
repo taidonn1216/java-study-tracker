@@ -1,4 +1,5 @@
 package com.example.tracker.model;
+import java.time.LocalDate;
 
 import java.time.LocalDate;
 
@@ -38,14 +39,15 @@ public class Task {
     /** 完了フラグ（{@code true}: 完了、{@code false}: 未完了） */
     private Boolean completed;
 
-     /** ステータス（未着手、進行中、完了） */
+    /**　タスクのステータス(未着手、進行中、完了) */
     private String status;
 
-    /** 期限日 */
+    /** タスクの期限日 */
     private LocalDate deadline;
 
-    /** 完了時の学び・振り返り */
+    /** タスク完了時の学び・振り返り */
     private String reflection;
+
 
 
     /**
@@ -155,6 +157,7 @@ public class Task {
                 ", completed=" + completed +
                 '}';
     }
+
     /**
      * ステータスを返す。
      * @return ステータス {未着手、進行中、完了いずれかを返す}
@@ -202,4 +205,6 @@ public class Task {
     public void setReflection(String reflection) {
         this.reflection = reflection;
     }
+
+
 }
