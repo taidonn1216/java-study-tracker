@@ -326,10 +326,22 @@
                             th:style="${task.status == '完了'} ? 'color: #28a745;' : (${task.status == '進行中'} ? 'color: #ffc107;' : 'color: #6c757d;')">[未着手]</span>
                     </div>
 
-                    <details class="task-reflection-details" style="margin-top: 8px;" th:if="${task.reflection != null and !#strings.isEmpty(task.reflection)}">
-                        <summary style="cursor: pointer; color: #667eea; font-size: 0.9em;">💬 振り返りを見る</summary>
-                        <div class="reflection-content" style="background: #f8f9fa; padding: 10px; border-radius: 4px; margin-top: 5px; font-size: 0.9em; white-space: pre-wrap;">
-                            <p th:text="${task.reflection}">振り返り内容</p>
+                    <details class="task-reflection-details" style="margin-top: 8px;">
+                        <summary style="cursor: pointer; color: #667eea; font-size: 0.9em;">💬 振り返りを編集・保存</summary>
+                        
+                        <div class="reflection-content" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 5px; border-left: 4px solid #667eea;">
+                            <form th:action="@{/tasks/{taskId}/reflection(taskId=${task.id})}" method="post">
+                                <input type="hidden" name="subjectId" th:value="${subject.id}">
+                                
+                                <textarea name="reflection" 
+                                        style="width: 100%; min-height: 80px; padding: 10px; border: 1px solid #dee2e6; border-radius: 4px; font-family: inherit; resize: vertical;"
+                                        placeholder="振り返りを記入してください"
+                                        th:text="${task.reflection}"></textarea>
+                                
+                                <div style="text-align: right; margin-top: 8px;">
+                                    <button type="submit" class="btn btn-primary" style="padding: 5px 15px; font-size: 0.8em;">保存する</button>
+                                </div>
+                            </form>
                         </div>
                     </details>
                 </div>

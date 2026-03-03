@@ -76,4 +76,12 @@ public interface TaskRepository {
      * @param completed 新しい完了状態
      */
     void updateStatus(Long taskId, String status, boolean completed);
+
+    /**
+     * タスクの振り返り内容を更新する。
+     *
+     * @param taskId     更新対象のタスクID
+     * @param reflection 新しい振り返り内容
+     */
+    void updateReflection(Long taskId, String reflection);
 }

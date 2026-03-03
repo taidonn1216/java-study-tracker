@@ -101,4 +101,10 @@ public class TaskRepositoryImpl implements TaskRepository {
         jdbcTemplate.update(sql, status, completed, taskId);
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public void updateReflection(Long taskId, String reflection) {
+        String sql = "UPDATE TASK SET reflection = ? WHERE id = ?";
+        jdbcTemplate.update(sql, reflection, taskId);
+    }
 }

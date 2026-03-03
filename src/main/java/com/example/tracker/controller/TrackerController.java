@@ -237,4 +237,21 @@ public class TrackerController {
         taskRepository.updateCompleted(taskId, completed);
         return "redirect:/subjects/" + subjectId;
     }
+    /**
+     * タスクの振り返り内容を更新し、科目詳細ページへリダイレクトする。
+     *
+     * @param taskId     更新対象のタスクID
+     * @param subjectId  リダイレクト先の科目ID
+     * @param reflection フォームから送信された新しい振り返り内容
+     * @return {@code "/subjects/{subjectId}"} へのリダイレクト
+     */
+    @PostMapping("/tasks/{taskId}/reflection")
+    public String updateReflection(
+            @PathVariable("taskId") Long taskId,
+            @RequestParam("subjectId") Long subjectId,
+            @RequestParam("reflection") String reflection) {
+        
+        taskRepository.updateReflection(taskId, reflection);
+        return "redirect:/subjects/" + subjectId;
+    }
 }
