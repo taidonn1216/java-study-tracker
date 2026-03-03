@@ -87,9 +87,9 @@ class TrackerControllerTest {
     void testSubjectDetails() throws Exception {
         Subject subject = new Subject(1L, "数学");
         List<Task> tasks = Arrays.asList(
-            new Task(1L, 1L, "問題集1-10ページ", true),
-            new Task(2L, 1L, "問題集11-20ページ", false),
-            new Task(3L, 1L, "テスト勉強", false)
+            new Task(1L, 1L, "問題集1-10ページ", true, "完了",LocalDate.parse("2026-02-20"), "記入してください"),
+            new Task(2L, 1L, "問題集11-20ページ", false, "完了",LocalDate.parse("2026-02-20"), "記入してください"),
+            new Task(3L, 1L, "テスト勉強", false, "完了",LocalDate.parse("2026-02-20"), "記入してください")
         );
         
         when(subjectRepository.findById(1L)).thenReturn(Optional.of(subject));

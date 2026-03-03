@@ -1,5 +1,4 @@
 package com.example.tracker.model;
-import java.time.LocalDate;
 
 import java.time.LocalDate;
 
@@ -59,16 +58,22 @@ public class Task {
     /**
      * 全フィールド指定コンストラクタ。
      *
-     * @param id        タスクID
-     * @param subjectId 所属する科目のID
-     * @param title     タスクのタイトル
-     * @param completed 完了フラグ
+     * @param id        　タスクID
+     * @param subjectId 　所属する科目のID
+     * @param title     　タスクのタイトル
+     * @param completed 　完了フラグ
+     * @param status      ステータス
+     * @param deadline    期限日
+     * @param reflection  振り返り
      */
-    public Task(Long id, Long subjectId, String title, Boolean completed) {
+    public Task(Long id, Long subjectId, String title, Boolean completed,String status, LocalDate deadline, String reflection) {
         this.id = id;
         this.subjectId = subjectId;
         this.title = title;
         this.completed = completed;
+        this.status = status;
+        this.deadline = deadline;
+        this.reflection = reflection;
     }
 
     /**
@@ -155,6 +160,9 @@ public class Task {
                 ", subjectId=" + subjectId +
                 ", title='" + title + '\'' +
                 ", completed=" + completed +
+                ", status='" + status + '\'' +
+                ", deadline=" + deadline +
+                ", reflection='" + reflection + '\'' +
                 '}';
     }
 
