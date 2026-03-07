@@ -308,6 +308,21 @@
             </form>
         </div>
         
+         <div style="margin: 20px 0; display: flex; justify-content: flex-end;">
+            <form th:action="@{/subjects/{id}(id=${subject.id})}" method="get" style="display: flex; align-items: center; gap: 10px;">
+                <label for="statusFilter" style="font-weight: bold; color: #495057;">絞り込み:</label>
+                <select id="statusFilter" name="statusFilter" class="form-select" 
+                         style="width: auto; padding: 6px 30px 6px 12px; font-weight: bold;" 
+                        th:styleappend="${statusFilter == '完了'} ? 'color: #28a745;' : (${statusFilter == '進行中'} ? 'color: #ffc107;' : (${statusFilter == '未着手'} ? 'color: #6c757d;' : 'color: #495057;'))"
+                        onchange="this.form.submit()">
+                    <option value="" th:selected="${statusFilter == null || statusFilter == ''}">すべて表示</option>
+                    <option value="未着手" th:selected="${statusFilter == '未着手'}">未着手</option>
+                    <option value="進行中" th:selected="${statusFilter == '進行中'}">進行中</option>
+                    <option value="完了" th:selected="${statusFilter == '完了'}">完了</option>
+                </select>
+            </form>
+        </div>
+
         <!-- タスク一覧 -->
         <div th:if="${#lists.isEmpty(tasks)}" class="empty-state">
             <p>📋 まだタスクが登録されていません</p>

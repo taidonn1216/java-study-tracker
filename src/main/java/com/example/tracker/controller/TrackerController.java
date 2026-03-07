@@ -111,30 +111,49 @@ public class TrackerController {
      * </ul>
      *
      * @param id    科目ID
+     * @param statusFilter 絞り込み条件(完了、進行中、完了)
      * @param model Spring MVC Model
      * @return ビュー名 {@code "subject_details"} または {@code "/"} へのリダイレクト
      */
-    @GetMapping("/subjects/{id}")
-    public String subjectDetails(@PathVariable("id") Long id, Model model) {
+     @GetMapping("/subjects/{id}")
+    public String subjectDetails(
+            @PathVariable("id") Long id,
+            @RequestParam(name = "statusFilter", required = false) String statusFilter,
+            Model model) {
+        
         Optional<Subject> subjectOpt = subjectRepository.findById(id);
+        
         
         if (subjectOpt.isEmpty()) {
             return "redirect:/";
         }
-        
+
+         
+        // ★ここを追加：OptionalからSubjectを取り出す
         Subject subject = subjectOpt.get();
-        List<Task> tasks = taskRepository.findBySubjectId(id);
-        
-        // タスク統計を計算
-        long totalTasks = tasks.size();
-        long completedTasks = tasks.stream().filter(task -> Boolean.TRUE.equals(task.getCompleted())).count();
+       
+       // ① 全タスクを取得して統計の計算に使用する（全体の件数を表示するため）
+        List<Task> allTasks = taskRepository.findBySubjectId(id);
+        long totalTasks = allTasks.size();
+        long completedTasks = allTasks.stream().filter(task -> Boolean.TRUE.equals(task.getCompleted())).count();
         long incompleteTasks = totalTasks - completedTasks;
         
+       // ② 表示用のタスクを絞り込む
+        List<Task> displayTasks;
+        if (statusFilter == null || statusFilter.isEmpty()) {
+            displayTasks = allTasks;
+        } else {
+            displayTasks = taskRepository.findBySubjectIdAndStatus(id, statusFilter);
+        }
+       
         model.addAttribute("subject", subject);
-        model.addAttribute("tasks", tasks);
+        model.addAttribute("tasks", displayTasks); // 絞り込んだタスク画面に渡す
         model.addAttribute("totalTasks", totalTasks);
         model.addAttribute("completedTasks", completedTasks);
         model.addAttribute("incompleteTasks", incompleteTasks);
+        
+        // ③ プルダウンの選択状態（どれが選ばれているか）を保持するためにモデルに渡す
+        model.addAttribute("statusFilter", statusFilter);
         
         return "subject_details";
     }

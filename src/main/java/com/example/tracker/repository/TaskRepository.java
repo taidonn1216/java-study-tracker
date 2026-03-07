@@ -27,6 +27,15 @@ public interface TaskRepository {
     List<Task> findBySubjectId(Long subjectId);
 
     /**
+     * 指定した科目IDとステータスに紐ずくタスクを所得する。
+     * 
+     * @param subjectid 科目ID
+     * @param ststus ステータス　(未着手、進行中、完了)
+     * @return 絞り込まれたタスクにリスト
+     */
+    List<Task> findBySubjectIdAndStatus(Long subjectId, String ststus);
+   
+    /**
      * 新しいタスクを未完了状態 ({@code completed = FALSE}) で登録する。
      *
      * @param subjectId タスクを追加する科目のID
@@ -83,5 +92,5 @@ public interface TaskRepository {
      * @param taskId     更新対象のタスクID
      * @param reflection 新しい振り返り内容
      */
-    void updateReflection(Long taskId, String reflection);
+    void updateReflection(Long taskId, String reflection); 
 }

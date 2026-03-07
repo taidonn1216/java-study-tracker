@@ -56,6 +56,15 @@ public class TaskRepositoryImpl implements TaskRepository {
         String sql = "SELECT id, subject_id, title, completed, status, deadline, reflection  FROM TASK WHERE subject_id = ? ORDER BY id";
         return jdbcTemplate.query(sql, taskRowMapper, subjectId);
     }
+    
+    
+    /** {@inheritDoc} */
+    @Override
+    public List<Task> findBySubjectIdAndStatus(Long subjectId, String status) {
+        String sql = "SELECT id, subject_id, title, completed, status, deadline, reflection  FROM TASK WHERE subject_id = ? AND status = ? ORDER BY id";
+        return jdbcTemplate.query(sql, taskRowMapper, subjectId, status);
+    }
+
 
     /** {@inheritDoc} */
     @Override
