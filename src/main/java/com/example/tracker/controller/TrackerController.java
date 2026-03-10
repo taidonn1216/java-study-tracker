@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Comparator;
 
 /**
  * 学習進捗トラッカーのWebリクエストを処理するSpring MVCコントローラー。
@@ -119,7 +120,8 @@ public class TrackerController {
     public String subjectDetails(
             @PathVariable("id") Long id,
             @RequestParam(name = "statusFilter", required = false) String statusFilter,
-            Model model) {
+            @RequestParam(name = "sortOrder", required = false, defaultValue = "idAsc") String sortOrder, //並び替え条件
+             Model model) {
         
         Optional<Subject> subjectOpt = subjectRepository.findById(id);
         
@@ -145,6 +147,34 @@ public class TrackerController {
         } else {
             displayTasks = taskRepository.findBySubjectIdAndStatus(id, statusFilter);
         }
+
+        //③ 所得したタスクを並び替える
+        if("idDesc".equals(sortOrder)) {
+            //登録が新しい順(idの降順)
+            displayTasks.sort((t1,t2) -> t2.getId().compareTo(t1.getId()));
+        } else if ("deadlineAsc".equals(sortOrder)){
+            //期限が近い順(nullの場合一番下に)
+            displayTasks.sort((t1, t2) -> {
+                if(t1.getDeadline() == null && t2.getDeadline() == null) return 0;
+                if(t1.getDeadline() == null) return 1;
+                if(t2.getDeadline() == null) return -1;
+                return t1.getDeadline().compareTo(t2.getDeadline());
+            });
+        
+          } else if ("deadlineDesc".equals(sortOrder)) {
+            //期限が遠い順(nullの場合一番下に)
+            displayTasks.sort((t1, t2) -> {
+                if(t1.getDeadline() == null && t2.getDeadline() == null) return 0;
+                if(t1.getDeadline() == null) return 1;
+                if(t2.getDeadline() == null) return -1;
+                return t2.getDeadline().compareTo(t1.getDeadline());
+            });    
+        
+        } else {
+            //デフォルト：登録が古い順(idの昇順)
+            displayTasks.sort(Comparator.comparing(Task::getId));
+        }
+        
        
         model.addAttribute("subject", subject);
         model.addAttribute("tasks", displayTasks); // 絞り込んだタスク画面に渡す
@@ -152,8 +182,9 @@ public class TrackerController {
         model.addAttribute("completedTasks", completedTasks);
         model.addAttribute("incompleteTasks", incompleteTasks);
         
-        // ③ プルダウンの選択状態（どれが選ばれているか）を保持するためにモデルに渡す
+        // ④ プルダウンの選択状態（どれが選ばれているか）を保持するためにモデルに渡す
         model.addAttribute("statusFilter", statusFilter);
+        model.addAttribute("sortOrder", sortOrder); // 並び替え状態の保持
         
         return "subject_details";
     }

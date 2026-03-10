@@ -310,6 +310,8 @@
         
          <div style="margin: 20px 0; display: flex; justify-content: flex-end;">
             <form th:action="@{/subjects/{id}(id=${subject.id})}" method="get" style="display: flex; align-items: center; gap: 10px;">
+                
+                <!-- 絞り込み -->
                 <label for="statusFilter" style="font-weight: bold; color: #495057;">絞り込み:</label>
                 <select id="statusFilter" name="statusFilter" class="form-select" 
                          style="width: auto; padding: 6px 30px 6px 12px; font-weight: bold;" 
@@ -319,6 +321,15 @@
                     <option value="未着手" th:selected="${statusFilter == '未着手'}">未着手</option>
                     <option value="進行中" th:selected="${statusFilter == '進行中'}">進行中</option>
                     <option value="完了" th:selected="${statusFilter == '完了'}">完了</option>
+                </select>
+
+                <!-- 期限の並び替え-->
+                 <label for="sortOrder" style="font-weight: bold; color: #495057; margin-left: 15px;">並び替え:</label>
+                 <select id="sortOrder" name="sortOrder" class="form-select" onchange="this.form.submit()">
+                    <option value="idAsc" th:selected="${sortOrder == null || sortOrder == 'idAsc'}">登録が古い順</option>
+                    <option value="idDesc" th:selected="${sortOrder == 'idDesc'}">登録が新しい順</option>
+                    <option value="deadlineDesc" th:selected="${sortOrder == 'deadlineDesc'}">期限が遠い順</option>
+                    <option value="deadlineAsc" th:selected="${sortOrder == 'deadlineAsc'}">期限が近い順</option>
                 </select>
             </form>
         </div>
