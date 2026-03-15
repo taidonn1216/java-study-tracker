@@ -59,7 +59,9 @@ public class TrackerController {
      * 科目一覧ページを表示する。
      *
      * <p>全科目をタスク統計付きで取得し、
-     * {@code subjects} 属性としてモデルに追加する。</p>
+     * {@code subjects} 属性としてモデルに追加する。<br>
+     * また、本日の日付を基準に未完了の期限切れのタスクを所得し、
+     * {@code overdueTasks} 属性としてモデルに追加する。</p>
      *
      * @param model ビューにデータを渡すSpring MVC Model
      * @return ビュー名 {@code "index"}
@@ -68,6 +70,10 @@ public class TrackerController {
     public String index(Model model) {
         List<SubjectSummary> subjects = subjectRepository.findAllWithTaskStats();
         model.addAttribute("subjects", subjects);
+
+        List<Task> overdueTasks = taskRepository.findOverdueTasks(LocalDate.now());
+        model.addAttribute("overdueTasks", overdueTasks);
+
         return "index";
     }
     

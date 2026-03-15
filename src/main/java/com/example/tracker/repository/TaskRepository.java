@@ -93,4 +93,12 @@ public interface TaskRepository {
      * @param reflection 新しい振り返り内容
      */
     void updateReflection(Long taskId, String reflection); 
+
+    /**
+     * 指定した日付より期限が古く、かつ未完了にタスクを所得する。
+     * 
+     * @param currentDate 現在の日付
+     * @return 期限切れのタスクリスト(期限の古い順)
+     */
+    List<Task> findOverdueTasks(LocalDate currentDate);
 }

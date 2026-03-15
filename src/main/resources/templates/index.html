@@ -200,11 +200,57 @@
             font-size: 1.1em;
             margin-bottom: 10px;
         }
+
+        .alert-box {
+            background-color: #f8dbdf;
+            color: #842029;
+            border: 1PX solid #f5c2c7;
+            border-radius: 8PX;
+            padding: 15PX 20PX;
+            margin-bottom: 25PX;
+        }
+
+        .alert-box h3 {
+            margin-bottom: 10PX;
+            font-size: 1.2em;
+            color: #842029;
+            text-align: left;
+        }
+
+        .alert-box ul {
+            margin-left: 25Px;
+        }
+
+        .alert-box li {
+            margin-bottom: 5px;
+        }
+
+        .alert-box a {
+            color: #842029;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        .alert-box a:hover {
+            color: #5c161d;
+        }
+
     </style>
 </head>
 <body>
     <div class="container">
         <h1>📚 学習進捗トラッカー</h1>
+
+        <!-- 期限切れのタスクの警告 -->
+         <div th:if="${!#lists.isEmpty(overdueTasks)}" class="alert-box">
+            <h3>⚠️ 期限切れの未完了のタスクがあります</h3>
+            <ul>
+                <li th:each="task : ${overdueTasks}">
+                    <a th:href="@{/subjects/{id}(id=${task.subjectId})}" th:text="${task.title}">タスク名</a>
+                    <span th:text="'(期限: ' + ${#temporals.format(task.deadline, 'yyyy/MM/dd')} + ')'"></span>
+                </li>
+            </ul>
+        </div>
         
         <!-- 科目登録フォーム -->
         <div class="add-subject-form">

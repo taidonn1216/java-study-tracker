@@ -116,4 +116,14 @@ public class TaskRepositoryImpl implements TaskRepository {
         String sql = "UPDATE TASK SET reflection = ? WHERE id = ?";
         jdbcTemplate.update(sql, reflection, taskId);
     }
+   
+    /** {@inheritDoc} */
+    @Override
+    public List<Task> findOverdueTasks(LocalDate currentDate) {
+        String sql = "SELECT id, subject_id, title, completed, status, deadline, reflection "  +
+        "FROM TASK "  +
+        "WHERE deadline < ? AND completed = FALSE "  +
+        "ORDER BY deadline ASC";
+        return jdbcTemplate.query(sql, taskRowMapper, currentDate);
+    }
 }
