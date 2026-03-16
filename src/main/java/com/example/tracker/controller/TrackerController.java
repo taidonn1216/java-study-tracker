@@ -136,8 +136,7 @@ public class TrackerController {
             return "redirect:/";
         }
 
-         
-        // ★ここを追加：OptionalからSubjectを取り出す
+        // OptionalからSubjectを取り出す
         Subject subject = subjectOpt.get();
        
        // ① 全タスクを取得して統計の計算に使用する（全体の件数を表示するため）

@@ -4,11 +4,11 @@
 
 English:
 This document describes the Entity-Relationship diagram for the Learning Progress Tracker (java-tracker) application.
-The database uses H2 (in-memory) and consists of two tables: `SUBJECT` and `TASK`.
+The database uses H2 (in-memory) and consists of three tables: `SUBJECT`,  `TASK` and `USERS`.
 
 Japanese (日本語):
 本ドキュメントは、学習進捗トラッカー (java-tracker) アプリケーションのER図を記述します。
-データベースはH2（インメモリ）を使用し、`SUBJECT` テーブルと `TASK` テーブルの2つで構成されます。
+データベースはH2（インメモリ）を使用し、`SUBJECT` テーブル、 `TASK` テーブル 、`USERS` テーブルの3つで構成されます。
 
 ---
 
@@ -29,6 +29,11 @@ erDiagram
         VARCHAR status "NOT NULL, ステータス(未着手/進行中/完了)"
         DATE deadline "タスクの締切日"
         TEXT reflection "学び・振り返りコメント"
+    }
+    USERS {
+        BIGINT id PK "AUTO_INCREMENT, ユーザーID"
+        VARCHAR username "NOT NULL, ユーザー名 (最大255文字)"
+        VARCHAR password "NOT NULL, BCrypt暗号化済みパスワード (最大255文字)"
     }
 
     SUBJECT ||--o{ TASK : "has / 保有する"
@@ -53,14 +58,17 @@ erDiagram
 | TASK | `completed` | DEFAULT FALSE | デフォルト: FALSE（未完了） |
 | TASK | `status` | NOT NULL,VARCHAR(20) | NULL不可、ステータス管理 |
 | TASK | `deadline` | DATE | 期間設定(日付型) |
-| TASK |`reflection` | TEXT | 学び・振り返り(長文可) |
-
-## Notes / 備考
+| TASK | `reflection` | TEXT | 学び・振り返り(長文可) |
+| USERS | `id` | Primary Key, Auto Increment | 主キー、自動採番 |
+| USERS | `username` | NOT NULL, VARCHAR(255) | NULL不可、最大255文字 |
+| USERS | `password` | NOT NULL, VARCHAR(255) | NULL不可、BCrypt暗号化済み |
 
 English:
 - When a `SUBJECT` is deleted, all associated `TASK` records are automatically deleted (`ON DELETE CASCADE`).
 - The database is initialized at startup using `schema.sql` and `data.sql` located in `src/main/resources/`.
+- Passwords are stored as BCrypt-encoded hashes. Plain text passwords are never stored.
 
 Japanese (日本語):
 - `SUBJECT` を削除すると、紐づく `TASK` レコードもすべて自動削除されます（`ON DELETE CASCADE`）。
 - データベースは起動時に `src/main/resources/` 配下の `schema.sql` と `data.sql` で初期化されます。
+- パスワードはBCryptで暗号化されて保存されます。平文のパスワードは保存されません。
