@@ -56,7 +56,7 @@ erDiagram
 | TASK | `subject_id` | Foreign Key → SUBJECT(id), NOT NULL, ON DELETE CASCADE | 外部キー → SUBJECT(id)、NULL不可、カスケード削除 |
 | TASK | `title` | NOT NULL, VARCHAR(255) | NULL不可、最大255文字 |
 | TASK | `completed` | DEFAULT FALSE | デフォルト: FALSE（未完了） |
-| TASK | `status` | NOT NULL,VARCHAR(20) | NULL不可、ステータス管理 |
+| TASK | `status` | NOT NULL, VARCHAR(20) | NULL不可、ステータス管理 |
 | TASK | `deadline` | DATE | 期間設定(日付型) |
 | TASK | `reflection` | TEXT | 学び・振り返り(長文可) |
 | USERS | `id` | Primary Key, Auto Increment | 主キー、自動採番 |
