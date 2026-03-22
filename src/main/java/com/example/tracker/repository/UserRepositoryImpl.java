@@ -26,7 +26,7 @@ public class UserRepositoryImpl implements UserRepository {
     private final JdbcTemplate jdbcTemplate;
 
     /**
-     * {@link java.sql.ResultSet}　の行を {@link User} オブジェクトに変換する {@link RowMapper}
+     * {@link java.sql.ResultSet} の行を {@link User} オブジェクトに変換する {@link RowMapper}
      */
     private final RowMapper<User> userRowMapper = (rs, rowNum) -> {
         User user = new User();
@@ -39,7 +39,7 @@ public class UserRepositoryImpl implements UserRepository {
      /**
       * コンストラクタインジェクション
       * 
-      * @param jdbcTemplate Springが提供する {@link JdbcTemplate}　インスタンス
+      * @param jdbcTemplate Springが提供する {@link JdbcTemplate} インスタンス
       */
      public UserRepositoryImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -48,7 +48,7 @@ public class UserRepositoryImpl implements UserRepository {
      /** {@inheritDoc} */
     @Override
     public Optional<User> findByUsername(String username) {
-        String sql = "SELECT id, username, password , FROM USERS WHERE username = ?";
+        String sql = "SELECT id, username, password FROM USERS WHERE username = ?";
         List<User> users = jdbcTemplate.query(sql,userRowMapper,username);
         return users.stream().findFirst();
     }
