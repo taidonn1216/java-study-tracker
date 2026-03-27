@@ -4,7 +4,7 @@ INSERT INTO SUBJECT (name) VALUES ('データベース');
 INSERT INTO SUBJECT (name) VALUES ('Spring Framework');
 INSERT INTO USERS (username, password) VALUES(
     'user',
-    '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy'
+    '$2b$10$8gl4P.2H1sEOH0mU8moubOHvLxrfqr6AKtJ326H3CbgJ2dikD9/ma'
 );
 
 -- Insert sample tasks for Java (subject_id = 1)

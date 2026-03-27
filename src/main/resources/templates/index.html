@@ -94,6 +94,13 @@
             padding: 6px 12px;
             font-size: 0.9em;
         }
+
+        .btn-logout {
+           background: #6c757d;   /* 落ち着いた色 */
+           color: #fff;
+           padding: 8px 14px;
+           font-size: 0.9em;
+        }
         
         .btn-danger:hover {
             background: #c82333;
@@ -240,8 +247,16 @@
 <body>
     <div class="container">
         <h1>📚 学習進捗トラッカー</h1>
-
-        <!-- 期限切れのタスクの警告 -->
+        
+        <!-- ログアウト -->
+         <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+            <form th:action="@{/logout}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit" class="btn btn-logout">ログアウト</button>
+              </form>
+        </div>
+        
+         <!-- 期限切れのタスクの警告 -->
          <div th:if="${!#lists.isEmpty(overdueTasks)}" class="alert-box">
             <h3>⚠️ 期限切れの未完了のタスクがあります</h3>
             <ul>
