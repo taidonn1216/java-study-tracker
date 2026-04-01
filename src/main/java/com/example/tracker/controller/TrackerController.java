@@ -8,8 +8,10 @@ import com.example.tracker.repository.TaskRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
 import java.util.Comparator;
@@ -196,12 +198,16 @@ public class TrackerController {
     
     /**
      * 指定した科目に新しいタスクを登録し、科目詳細ページへリダイレクトする。
+     * 
+     * <p>期限日が未入力または不正な形式の場合、タスクを登録せず
+     * フラッシュメッセージとしてエラー内容を設定して科目詳細ページへ戻す。</p>
      *
      * @param subjectId タスクを追加する科目のID
      * @param title     フォームから送信されたタスクタイトル
      * @param status     フォームから送信されたステータス
      * @param deadline   フォームから送信された期限
      * @param reflection フォームから送信された振り返り内容
+     * @param redirectAttributes　リダイレクト先へフラッシュメッセージを渡すための属性
      * @return {@code "/subjects/{subjectId}"} へのリダイレクト
      */
     @PostMapping("/subjects/{subjectId}/tasks")
@@ -210,9 +216,24 @@ public class TrackerController {
             @RequestParam("title") String title,
             @RequestParam("status") String status,       
             @RequestParam("deadline") String deadline,   
-            @RequestParam("reflection") String reflection 
+            @RequestParam("reflection") String reflection, 
+            RedirectAttributes redirectAttributes
         ) {
-        taskRepository.insert(subjectId, title, status,  LocalDate.parse(deadline), reflection);
+        if(deadline == null || deadline.isBlank()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "期限日を入力してください。");
+            return "redirect:/subjects/" + subjectId;
+        }
+ 
+        LocalDate parsedDeadline;
+        try{
+            parsedDeadline = LocalDate.parse(deadline);
+        } catch (DateTimeParseException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "期限日の形式が不正です。");
+            return "redirect:/subjects/" + subjectId;
+
+        }
+            
+        taskRepository.insert(subjectId, title, status, parsedDeadline, reflection);
         return "redirect:/subjects/" + subjectId;
     }
     

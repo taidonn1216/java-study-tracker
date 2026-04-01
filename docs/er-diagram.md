@@ -32,7 +32,7 @@ erDiagram
     }
     USERS {
         BIGINT id PK "AUTO_INCREMENT, ユーザーID"
-        VARCHAR username "NOT NULL, ユーザー名 (最大255文字)"
+        VARCHAR username "NOT NULL, UNIQUE, ユーザー名 (最大255文字)"
         VARCHAR password "NOT NULL, BCrypt暗号化済みパスワード (最大255文字)"
     }
 

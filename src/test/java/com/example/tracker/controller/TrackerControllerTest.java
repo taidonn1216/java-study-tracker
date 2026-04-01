@@ -90,8 +90,8 @@ class TrackerControllerTest {
         Subject subject = new Subject(1L, "数学");
         List<Task> tasks = Arrays.asList(
             new Task(1L, 1L, "問題集1-10ページ", true, "完了",LocalDate.parse("2026-02-20"), "記入してください"),
-            new Task(2L, 1L, "問題集11-20ページ", false, "完了",LocalDate.parse("2026-02-20"), "記入してください"),
-            new Task(3L, 1L, "テスト勉強", false, "完了",LocalDate.parse("2026-02-20"), "記入してください")
+            new Task(2L, 1L, "問題集11-20ページ", false, "進行中",LocalDate.parse("2026-02-20"), "記入してください"),
+            new Task(3L, 1L, "テスト勉強", false, "未着手",LocalDate.parse("2026-02-20"), "記入してください")
         );
         
         when(subjectRepository.findById(1L)).thenReturn(Optional.of(subject));
@@ -156,6 +156,28 @@ class TrackerControllerTest {
     }
     
     @Test
+    void testUpdateTaskStatus_ToDone() throws Exception {
+        mockMvc.perform(post("/tasks/1/status")
+                .param("subjectId", "2")
+                .param("status", "完了"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/subjects/2"));
+        
+        verify(taskRepository, times(1)).updateStatus(1L, "完了", true);   
+    }
+
+    @Test
+    void testUpdateTaskStatus_ToDoing() throws Exception {
+        mockMvc.perform(post("/tasks/1/status")
+                .param("subjectId", "2")
+                .param("status", "進行中"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/subjects/2"));
+        
+        verify(taskRepository, times(1)).updateStatus(1L, "進行中", false);
+    }
+
+    @Test
     void testCompleteTask() throws Exception {
         mockMvc.perform(post("/tasks/1/complete")
                 .param("subjectId", "2")
@@ -185,5 +207,33 @@ class TrackerControllerTest {
             .andExpect(redirectedUrl("/subjects/2"));
         
         verify(taskRepository, times(1)).deleteById(1L);
+    }
+
+    @Test
+    void testCreateTask_DeadlineBlank() throws Exception {
+        mockMvc.perform(post("/subjects/1/tasks")
+            .param("title", "問題集")
+            .param("status", "未着手")
+            .param("deadline", "")
+            .param("reflection", ""))
+        .andExpect(status().is3xxRedirection())
+        .andExpect(redirectedUrl("/subjects/1"))
+        .andExpect(flash().attribute("errorMessage", "期限日を入力してください。"));
+        
+        verify(taskRepository,never()).insert(anyLong(), anyString(), anyString(),any(),anyString());
+    }
+
+    @Test
+    void testCreateTask_DeadlineInvalidFormat() throws Exception {
+        mockMvc.perform(post("/subjects/1/tasks")
+                .param("title", "問題集")
+                .param("status", "未着手" )
+                .param("deadline", "2026/02/30")
+                .param("reflection", ""))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/subjects/1"))
+            .andExpect(flash().attribute("errorMessage", "期限日の形式が不正です。"));
+
+        verify(taskRepository, never()).insert(anyLong(), anyString(), anyString(), any(), anyString());    
     }
 }

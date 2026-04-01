@@ -33,7 +33,7 @@ public interface TaskRepository {
      * @param ststus ステータス　(未着手、進行中、完了)
      * @return 絞り込まれたタスクにリスト
      */
-    List<Task> findBySubjectIdAndStatus(Long subjectId, String ststus);
+    List<Task> findBySubjectIdAndStatus(Long subjectId, String status);
    
     /**
      * 新しいタスクを未完了状態 ({@code completed = FALSE}) で登録する。

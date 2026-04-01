@@ -270,6 +270,12 @@
         <!-- ナビゲーション-->
         <a href="/" class="back-link">← 科目一覧に戻る</a>
         <h1 th:text="${subject.name}">科目名</h1>
+
+        <!-- タスクエラーメッセージ -->
+        <div th:if="${errorMessage}"
+             style="margin-bottom: 20px; padding: 12px; border-radius: 6px; background: #f8d7da; color: #842029; font-weight: bold;">
+            <span th:text="${errorMessage}">エラーメッセージ</span>
+        </div>
         
         <!-- タスク統計サマリー -->
         <div class="stats-summary" th:if="${totalTasks > 0}">
@@ -291,16 +297,17 @@
         <div class="add-task-form">
             <h2>新しいタスクを追加</h2>
             <form th:action="@{/subjects/{id}/tasks(id=${subject.id})}" method="post">
-                <div class="form-group">
-                    <input type="text" name="title" placeholder="タスク名を入力してください (例: 第3章を読む)" required>
-                    <select name="status">
-                        <option value="未着手">未着手</option>
-                        <option value="進行中" selected>進行中</option>
-                        <option value="完了">完了</option>
-                    </select>
-                    <input type="date" name="deadline" required>
-                    <button type="submit" class="btn btn-primary">追加</button>
-                </div>
+            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <div class="form-group">
+                        <input type="text" name="title" placeholder="タスク名を入力してください (例: 第3章を読む)" required>
+                        <select name="status">
+                            <option value="未着手">未着手</option>
+                            <option value="進行中" selected>進行中</option>
+                            <option value="完了">完了</option>
+                        </select>
+                        <input type="date" name="deadline" required>
+                        <button type="submit" class="btn btn-primary">追加</button>
+                    </div>
                     
                 <div style="margin-top: 10px;">
                     <textarea name="reflection" placeholder="振り返りを記入してください" 
@@ -342,21 +349,25 @@
         
         <ul class="tasks-list" th:if="${!#lists.isEmpty(tasks)}">
             <li class="task-item" th:each="task : ${tasks}" th:classappend="${task.completed} ? 'completed' : ''">
+               
                 <!-- タスク情報 -->
                 <div class="task-info-group" style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
                     <div class="task-content">
                         <span class="task-status" th:text="${task.status == '完了'} ? '✅' : (${task.status == '進行中'} ? '🔄' : '⬜')">⬜</span>
                         <span class="task-title" th:text="${task.title}" style="font-weight: bold;">タスク名</span>
                         <span class="task-deadline" th:if="${task.deadline != null}" th:text="${#temporals.format(task.deadline, 'yyyy/MM/dd')}">2026/02/26</span>
-                        <span class="task-status-label" th:text="'[' + ${task.status} + ']'"
+                        <span class="task-status-label" 
+                            th:text="|[${task.status}]|"
                             th:style="${task.status == '完了'} ? 'color: #28a745;' : (${task.status == '進行中'} ? 'color: #ffc107;' : 'color: #6c757d;')">[未着手]</span>
                     </div>
+                    
                     <!-- タスク振り返り -->
                     <details class="task-reflection-details" style="margin-top: 8px;">
                         <summary style="cursor: pointer; color: #667eea; font-size: 0.9em;">💬 振り返りを編集・保存</summary>
                         <div class="reflection-content" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 5px; border-left: 4px solid #667eea;">
                             <form th:action="@{/tasks/{taskId}/reflection(taskId=${task.id})}" method="post">
                                 <input type="hidden" name="subjectId" th:value="${subject.id}">
+                                <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                                 <textarea name="reflection" 
                                         style="width: 100%; min-height: 80px; padding: 10px; border: 1px solid #dee2e6; border-radius: 4px; font-family: inherit; resize: vertical;"
                                         placeholder="振り返りを記入してください"
@@ -368,21 +379,27 @@
                         </div>
                     </details>
                 </div>
+                
                 <!-- タスク操作ボタン -->
                 <div class="task-actions" style="display: flex; gap: 10px; align-items: center; margin-left: 20px; flex-shrink: 0;">
+                    
                     <!-- ステータス変更 -->
                     <form th:action="@{/tasks/{taskId}/status(taskId=${task.id})}" method="post" style="margin: 0;">
+                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                         <input type="hidden" name="subjectId" th:value="${subject.id}">
-                        <input type="hidden" name="currentStatus" th:value="${task.status}">
-                        <select name="status" onchange="this.form.submit()">
+                        <select name="status" 
+                        onchange="this.form.submit()"
+                        th:style="${task.status == '完了'} ? 'color: #28a745; font-weight: bold;' : (${task.status == '進行中'} ? 'color: #ffc107; font-weight: bold;' : 'color: #6c757d; font-weight: bold;')">
                             <option value="未着手" th:selected="${task.status == '未着手'}">未着手</option>
                             <option value="進行中" th:selected="${task.status == '進行中'}">進行中</option>
                             <option value="完了" th:selected="${task.status == '完了'}">完了</option>
                         </select>
                     </form>
+                    
                     <!-- 削除 -->
                     <form th:action="@{/tasks/{taskId}/delete(taskId=${task.id})}" method="post"
                         onsubmit="return confirm('このタスクを削除しますか?');" style="margin: 0;">
+                        <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                         <input type="hidden" name="subjectId" th:value="${subject.id}">
                         <button type="submit" class="btn btn-danger">削除</button>
                     </form>

@@ -17,7 +17,7 @@ class TaskTest {
         assertNull(task.getId());
         assertNull(task.getSubjectId());
         assertNull(task.getTitle());
-        assertNull(task.getCompleted());
+        assertFalse(task.getCompleted());
     }
     
     @Test

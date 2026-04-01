@@ -36,7 +36,7 @@ public class Task {
     private String title;
 
     /** 完了フラグ（{@code true}: 完了、{@code false}: 未完了） */
-    private Boolean completed;
+    private boolean completed;
 
     /**　タスクのステータス(未着手、進行中、完了) */
     private String status;
@@ -66,7 +66,7 @@ public class Task {
      * @param deadline    期限日
      * @param reflection  振り返り
      */
-    public Task(Long id, Long subjectId, String title, Boolean completed,String status, LocalDate deadline, String reflection) {
+    public Task(Long id, Long subjectId, String title, boolean completed,String status, LocalDate deadline, String reflection) {
         this.id = id;
         this.subjectId = subjectId;
         this.title = title;
@@ -135,7 +135,7 @@ public class Task {
      *
      * @return 完了している場合は {@code true}、未完了の場合は {@code false}
      */
-    public Boolean getCompleted() {
+    public boolean getCompleted() {
         return completed;
     }
 
@@ -144,7 +144,7 @@ public class Task {
      *
      * @param completed {@code true} で完了、{@code false} で未完了
      */
-    public void setCompleted(Boolean completed) {
+    public void setCompleted(boolean completed) {
         this.completed = completed;
     }
 
