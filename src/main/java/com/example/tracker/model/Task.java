@@ -5,16 +5,18 @@ import java.time.LocalDate;
 /**
  * タスク（Task）を表すドメインクラス。
  *
- * <p>データベースの {@code TASK} テーブルに対応するPOJO。
- * 各タスクは1つの {@link Subject 科目} に紐づき、タイトルと完了状態を持つ。</p>
+ * <p>データベースの {@code TASK} テーブルに対応するPOJO。</p>
  *
  * <h3>対応テーブル</h3>
  * <pre>
  * CREATE TABLE TASK (
- *     id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+ *     id BIGINT AUTO_INCREMENT PRIMARY KEY,
  *     subject_id BIGINT NOT NULL,
- *     title      VARCHAR(255) NOT NULL,
- *     completed  BOOLEAN DEFAULT FALSE,
+ *     title VARCHAR(255) NOT NULL,
+ *     completed BOOLEAN NOT NULL DEFAULT FALSE,
+ *     status VARCHAR(20) NOT NULL,
+ *     deadline DATE,
+ *     reflection TEXT,
  *     FOREIGN KEY (subject_id) REFERENCES SUBJECT(id) ON DELETE CASCADE
  * );
  * </pre>
@@ -23,6 +25,7 @@ import java.time.LocalDate;
  * @version 1.0
  * @since 1.0
  * @see Subject
+ * @see TaskStatus
  */
 public class Task {
 
@@ -39,7 +42,7 @@ public class Task {
     private boolean completed;
 
     /**　タスクのステータス(未着手、進行中、完了) */
-    private String status;
+    private TaskStatus status;
 
     /** タスクの期限日 */
     private LocalDate deadline;
@@ -66,7 +69,7 @@ public class Task {
      * @param deadline    期限日
      * @param reflection  振り返り
      */
-    public Task(Long id, Long subjectId, String title, boolean completed,String status, LocalDate deadline, String reflection) {
+    public Task(Long id, Long subjectId, String title, boolean completed, TaskStatus status, LocalDate deadline, String reflection) {
         this.id = id;
         this.subjectId = subjectId;
         this.title = title;
@@ -133,16 +136,16 @@ public class Task {
     /**
      * 完了状態を返す。
      *
-     * @return 完了している場合は {@code true}、未完了の場合は {@code false}
+     * @return 完了している場合は {@code true}、それ以外の場合は {@code false}
      */
-    public boolean getCompleted() {
+    public boolean isCompleted() {
         return completed;
     }
 
     /**
      * 完了状態を設定する。
      *
-     * @param completed {@code true} で完了、{@code false} で未完了
+     * @param completed {@code true} で完了、{@code false} でそれ以外
      */
     public void setCompleted(boolean completed) {
         this.completed = completed;
@@ -160,7 +163,7 @@ public class Task {
                 ", subjectId=" + subjectId +
                 ", title='" + title + '\'' +
                 ", completed=" + completed +
-                ", status='" + status + '\'' +
+                ", status='" + status +  '\'' +
                 ", deadline=" + deadline +
                 ", reflection='" + reflection + '\'' +
                 '}';
@@ -168,22 +171,25 @@ public class Task {
 
     /**
      * ステータスを返す。
+     * 
      * @return ステータス {未着手、進行中、完了いずれかを返す}
      */
-    public String getStatus() {
+    public TaskStatus getStatus() {
         return status;
     }
 
     /**
      * ステータスの設定を受け取る
+     * 
      * @param status 未着手、進行中、完了いずれかを受け取りstatusに代入する。
      */
-    public void setStatus(String status) {
+    public void setStatus(TaskStatus status) {
         this.status = status;
     }
     
     /**
      * 期限日を返す。
+     * 
      * @return 期限日 {年・月・日を返す}
      */
     public LocalDate getDeadline() {
@@ -192,6 +198,7 @@ public class Task {
 
     /**
      * 期限の設定を受け取る。
+     * 
      * @param deadline 年・月・日を受け取りdeadlineに代入する。
      */
     public void setDeadline(LocalDate deadline) {
@@ -200,14 +207,16 @@ public class Task {
 
     /**
      * 完了時の学び・振り返りを返す。
+     * 
      * @return　書いてくれたもの {文字}
      */
-    public String  getReflection() {
+    public String getReflection() {
         return reflection;
     }
 
     /**
      * 完了時の学び・振り返りの設定を受け取る。
+     * 
      * @param reflection 書いてくれたものをreflectionに代入する。
      */
     public void setReflection(String reflection) {

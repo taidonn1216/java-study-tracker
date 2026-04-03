@@ -301,9 +301,9 @@
                     <div class="form-group">
                         <input type="text" name="title" placeholder="タスク名を入力してください (例: 第3章を読む)" required>
                         <select name="status">
-                            <option value="未着手">未着手</option>
-                            <option value="進行中" selected>進行中</option>
-                            <option value="完了">完了</option>
+                            <option value="NOT_STARTED">未着手</option>
+                            <option value="IN_PROGRESS" selected>進行中</option>
+                            <option value="DONE">完了</option>
                         </select>
                         <input type="date" name="deadline" required>
                         <button type="submit" class="btn btn-primary">追加</button>
@@ -322,12 +322,12 @@
                    <label for="statusFilter" style="font-weight: bold; color: #495057;">絞り込み:</label>
                 <select id="statusFilter" name="statusFilter" class="form-select" 
                          style="width: auto; padding: 6px 30px 6px 12px; font-weight: bold;" 
-                        th:styleappend="${statusFilter == '完了'} ? 'color: #28a745;' : (${statusFilter == '進行中'} ? 'color: #ffc107;' : (${statusFilter == '未着手'} ? 'color: #6c757d;' : 'color: #495057;'))"
+                        th:styleappend="${statusFilter == 'DONE'} ? 'color: #28a745;' : (${statusFilter == 'IN_PROGRESS'} ? 'color: #ffc107;' : (${statusFilter == 'NOT_STARTED'} ? 'color: #6c757d;' : 'color: #495057;'))"
                         onchange="this.form.submit()">
                     <option value="" th:selected="${statusFilter == null || statusFilter == ''}">すべて表示</option>
-                    <option value="未着手" th:selected="${statusFilter == '未着手'}">未着手</option>
-                    <option value="進行中" th:selected="${statusFilter == '進行中'}">進行中</option>
-                    <option value="完了" th:selected="${statusFilter == '完了'}">完了</option>
+                    <option value="NOT_STARTED" th:selected="${statusFilter == 'NOT_STARTED'}">未着手</option>
+                    <option value="IN_PROGRESS" th:selected="${statusFilter == 'IN_PROGRESS'}">進行中</option>
+                    <option value="DONE" th:selected="${statusFilter == 'DONE'}">完了</option>
                 </select>
 
                 <!-- 期限の並び替え-->
@@ -353,12 +353,12 @@
                 <!-- タスク情報 -->
                 <div class="task-info-group" style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
                     <div class="task-content">
-                        <span class="task-status" th:text="${task.status == '完了'} ? '✅' : (${task.status == '進行中'} ? '🔄' : '⬜')">⬜</span>
+                        <span class="task-status" th:text="${task.status.name() == 'DONE'} ? '✅' : (${task.status.name() == 'IN_PROGRESS'} ? '🔄' : '⬜')">⬜</span>
                         <span class="task-title" th:text="${task.title}" style="font-weight: bold;">タスク名</span>
                         <span class="task-deadline" th:if="${task.deadline != null}" th:text="${#temporals.format(task.deadline, 'yyyy/MM/dd')}">2026/02/26</span>
                         <span class="task-status-label" 
-                            th:text="|[${task.status}]|"
-                            th:style="${task.status == '完了'} ? 'color: #28a745;' : (${task.status == '進行中'} ? 'color: #ffc107;' : 'color: #6c757d;')">[未着手]</span>
+                            th:text="|[${task.status.getLabel()}]|"
+                            th:style="${task.status.name() == 'DONE'} ? 'color: #28a745;' : (${task.status.name() == 'IN_PROGRESS'} ? 'color: #ffc107;' : 'color: #6c757d;')">[未着手]</span>
                     </div>
                     
                     <!-- タスク振り返り -->
@@ -389,10 +389,10 @@
                         <input type="hidden" name="subjectId" th:value="${subject.id}">
                         <select name="status" 
                         onchange="this.form.submit()"
-                        th:style="${task.status == '完了'} ? 'color: #28a745; font-weight: bold;' : (${task.status == '進行中'} ? 'color: #ffc107; font-weight: bold;' : 'color: #6c757d; font-weight: bold;')">
-                            <option value="未着手" th:selected="${task.status == '未着手'}">未着手</option>
-                            <option value="進行中" th:selected="${task.status == '進行中'}">進行中</option>
-                            <option value="完了" th:selected="${task.status == '完了'}">完了</option>
+                        th:style="${task.status.name() == 'DONE'} ? 'color: #28a745; font-weight: bold;' : (${task.status.name() == 'IN_PROGRESS'} ? 'color: #ffc107; font-weight: bold;' : 'color: #6c757d; font-weight: bold;')">
+                            <option value="NOT_STARTED" th:selected="${task.status.name() == 'NOT_STARTED'}">未着手</option>
+                            <option value="IN_PROGRESS" th:selected="${task.status.name() == 'IN_PROGRESS'}">進行中</option>
+                            <option value="DONE" th:selected="${task.status.name() == 'DONE'}">完了</option>
                         </select>
                     </form>
                     

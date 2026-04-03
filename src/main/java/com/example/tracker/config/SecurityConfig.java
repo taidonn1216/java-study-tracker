@@ -39,7 +39,7 @@ public class SecurityConfig {
      * <p>ログインページ・CSS・JSは認証不要。
      * それ以外のページは認証が必須。</p>
      * 
-     * @param http {@link HttpSecuriyt} インスタンス
+     * @param http {@link HttpSecurity} インスタンス
      * @return {@link SecurityFilterChain} インスタンス
      * @throws Exception 設定エラー時
      */

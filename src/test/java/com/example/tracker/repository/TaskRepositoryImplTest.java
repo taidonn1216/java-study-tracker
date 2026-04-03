@@ -1,6 +1,7 @@
 package com.example.tracker.repository;
 
 import com.example.tracker.model.Task;
+import com.example.tracker.model.TaskStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,20 +47,20 @@ class TaskRepositoryImplTest {
     
     @Test
     void testInsert() {
-        taskRepository.insert(subjectId, "問題集1-10ページ","未着手", LocalDate.parse("2026-03-01"), "");
+        taskRepository.insert(subjectId, "問題集1-10ページ", TaskStatus.NOT_STARTED, LocalDate.parse("2026-03-01"), "");
         
         List<Task> tasks = taskRepository.findBySubjectId(subjectId);
         assertEquals(1, tasks.size());
         assertEquals("問題集1-10ページ", tasks.get(0).getTitle());
         assertEquals(subjectId, tasks.get(0).getSubjectId());
-        assertFalse(tasks.get(0).getCompleted());
+        assertFalse(tasks.get(0).isCompleted());
     }
     
     @Test
     void testFindBySubjectId() {
-        taskRepository.insert(subjectId, "タスク1", "未着手", LocalDate.parse("2026-03-01"), "");
-        taskRepository.insert(subjectId, "タスク2", "未着手", LocalDate.parse("2026-03-01"), "");
-        taskRepository.insert(subjectId, "タスク3", "未着手", LocalDate.parse("2026-03-01"), "");
+        taskRepository.insert(subjectId, "タスク1", TaskStatus.NOT_STARTED, LocalDate.parse("2026-03-01"), "");
+        taskRepository.insert(subjectId, "タスク2", TaskStatus.NOT_STARTED, LocalDate.parse("2026-03-01"), "");
+        taskRepository.insert(subjectId, "タスク3", TaskStatus.NOT_STARTED, LocalDate.parse("2026-03-01"), "");
         
         List<Task> tasks = taskRepository.findBySubjectId(subjectId);
         assertEquals(3, tasks.size());
@@ -76,28 +77,28 @@ class TaskRepositoryImplTest {
     
     @Test
     void testUpdateCompleted() {
-        taskRepository.insert(subjectId, "問題集1-10ページ", "未着手", LocalDate.parse("2026-03-01"), "");
+        taskRepository.insert(subjectId, "問題集1-10ページ", TaskStatus.NOT_STARTED, LocalDate.parse("2026-03-01"), "");
         Long taskId = taskRepository.findBySubjectId(subjectId).get(0).getId();
         
         // 未完了の状態を確認
         Task task = taskRepository.findBySubjectId(subjectId).get(0);
-        assertFalse(task.getCompleted());
+        assertFalse(task.isCompleted());
         
         // 完了に更新
         taskRepository.updateCompleted(taskId, true);
         task = taskRepository.findBySubjectId(subjectId).get(0);
-        assertTrue(task.getCompleted());
+        assertTrue(task.isCompleted());
         
         // 未完了に戻す
         taskRepository.updateCompleted(taskId, false);
         task = taskRepository.findBySubjectId(subjectId).get(0);
-        assertFalse(task.getCompleted());
+        assertFalse(task.isCompleted());
     }
     
     @Test
     void testDeleteById() {
-        taskRepository.insert(subjectId, "タスク1", "未着手", LocalDate.parse("2026-03-01"), "");
-        taskRepository.insert(subjectId, "タスク2", "未着手", LocalDate.parse("2026-03-01"), "");
+        taskRepository.insert(subjectId, "タスク1", TaskStatus.NOT_STARTED, LocalDate.parse("2026-03-01"), "");
+        taskRepository.insert(subjectId, "タスク2", TaskStatus.NOT_STARTED, LocalDate.parse("2026-03-01"), "");
         
         List<Task> tasks = taskRepository.findBySubjectId(subjectId);
         assertEquals(2, tasks.size());
@@ -114,19 +115,19 @@ class TaskRepositoryImplTest {
     void testCountBySubjectId() {
         assertEquals(0, taskRepository.countBySubjectId(subjectId));
         
-        taskRepository.insert(subjectId, "タスク1", "未着手", LocalDate.parse("2026-03-01"), "");
+        taskRepository.insert(subjectId, "タスク1", TaskStatus.NOT_STARTED, LocalDate.parse("2026-03-01"), "");
         assertEquals(1, taskRepository.countBySubjectId(subjectId));
         
-        taskRepository.insert(subjectId, "タスク2", "未着手", LocalDate.parse("2026-03-01"), "");
-        taskRepository.insert(subjectId, "タスク3", "未着手", LocalDate.parse("2026-03-01"), "");
+        taskRepository.insert(subjectId, "タスク2", TaskStatus.NOT_STARTED, LocalDate.parse("2026-03-01"), "");
+        taskRepository.insert(subjectId, "タスク3", TaskStatus.NOT_STARTED, LocalDate.parse("2026-03-01"), "");
         assertEquals(3, taskRepository.countBySubjectId(subjectId));
     }
     
     @Test
     void testCountCompletedBySubjectId() {
-        taskRepository.insert(subjectId, "タスク1", "未着手", LocalDate.parse("2026-03-01"), "");
-        taskRepository.insert(subjectId, "タスク2", "未着手", LocalDate.parse("2026-03-01"), "");
-        taskRepository.insert(subjectId, "タスク3", "未着手", LocalDate.parse("2026-03-01"), "");
+        taskRepository.insert(subjectId, "タスク1", TaskStatus.NOT_STARTED, LocalDate.parse("2026-03-01"), "");
+        taskRepository.insert(subjectId, "タスク2", TaskStatus.NOT_STARTED, LocalDate.parse("2026-03-01"), "");
+        taskRepository.insert(subjectId, "タスク3", TaskStatus.NOT_STARTED, LocalDate.parse("2026-03-01"), "");
         
         assertEquals(0, taskRepository.countCompletedBySubjectId(subjectId));
         

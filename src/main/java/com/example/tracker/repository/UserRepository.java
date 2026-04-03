@@ -9,7 +9,7 @@ import java.util.Optional;
  * <p>{@code USERS} テーブルに対するCRUD操作を定義する。</p>
  * 
  * @author tracker-team
- * @varsion 1.0
+ * @version 1.0
  * @since 1.0
  */
 

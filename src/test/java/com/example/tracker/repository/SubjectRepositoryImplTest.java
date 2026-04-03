@@ -2,6 +2,8 @@ package com.example.tracker.repository;
 
 import com.example.tracker.model.Subject;
 import com.example.tracker.model.SubjectSummary;
+import com.example.tracker.model.TaskStatus;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,9 +114,9 @@ class SubjectRepositoryImplTest {
         Long subjectId = subjectRepository.findAll().get(0).getId();
         
         // タスクを追加
-        taskRepository.insert(subjectId, "問題集1-10ページ", "未着手", LocalDate.parse("2026-03-01"), "");
-        taskRepository.insert(subjectId, "問題集11-20ページ", "未着手", LocalDate.parse("2026-03-01"), "");
-        taskRepository.insert(subjectId, "テスト勉強", "未着手", LocalDate.parse("2026-03-01"), "");
+        taskRepository.insert(subjectId, "問題集1-10ページ", TaskStatus.NOT_STARTED, LocalDate.parse("2026-03-01"), "");
+        taskRepository.insert(subjectId, "問題集11-20ページ", TaskStatus.NOT_STARTED, LocalDate.parse("2026-03-01"), "");
+        taskRepository.insert(subjectId, "テスト勉強", TaskStatus.NOT_STARTED, LocalDate.parse("2026-03-01"), "");
         
         // 1つのタスクを完了にする
         List<Long> taskIds = jdbcTemplate.queryForList(

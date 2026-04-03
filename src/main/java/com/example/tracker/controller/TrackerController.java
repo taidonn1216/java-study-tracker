@@ -3,6 +3,7 @@ package com.example.tracker.controller;
 import com.example.tracker.model.Subject;
 import com.example.tracker.model.SubjectSummary;
 import com.example.tracker.model.Task;
+import com.example.tracker.model.TaskStatus;
 import com.example.tracker.repository.SubjectRepository;
 import com.example.tracker.repository.TaskRepository;
 import org.springframework.stereotype.Controller;
@@ -120,7 +121,7 @@ public class TrackerController {
      * </ul>
      *
      * @param id    科目ID
-     * @param statusFilter 絞り込み条件(完了、進行中、完了)
+     * @param statusFilter 絞り込み条件(未着手、進行中、完了)
      * @param model Spring MVC Model
      * @return ビュー名 {@code "subject_details"} または {@code "/"} へのリダイレクト
      */
@@ -144,7 +145,7 @@ public class TrackerController {
        // ① 全タスクを取得して統計の計算に使用する（全体の件数を表示するため）
         List<Task> allTasks = taskRepository.findBySubjectId(id);
         long totalTasks = allTasks.size();
-        long completedTasks = allTasks.stream().filter(task -> Boolean.TRUE.equals(task.getCompleted())).count();
+        long completedTasks = allTasks.stream().filter(task -> Boolean.TRUE.equals(task.isCompleted())).count();
         long incompleteTasks = totalTasks - completedTasks;
         
        // ② 表示用のタスクを絞り込む
@@ -152,10 +153,11 @@ public class TrackerController {
         if (statusFilter == null || statusFilter.isEmpty()) {
             displayTasks = allTasks;
         } else {
-            displayTasks = taskRepository.findBySubjectIdAndStatus(id, statusFilter);
+            TaskStatus parsedFilter = TaskStatus.fromValue(statusFilter);
+            displayTasks = taskRepository.findBySubjectIdAndStatus(id, parsedFilter);
         }
 
-        //③ 所得したタスクを並び替える
+        //③ 取得したタスクを並び替える
         if("idDesc".equals(sortOrder)) {
             //登録が新しい順(idの降順)
             displayTasks.sort((t1,t2) -> t2.getId().compareTo(t1.getId()));
@@ -232,8 +234,17 @@ public class TrackerController {
             return "redirect:/subjects/" + subjectId;
 
         }
+
+         TaskStatus parsedStatus;
+         try {
+            parsedStatus = TaskStatus.fromValue(status);
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "ステータスが不正です。");
+            return "redirect:/subjects/" + subjectId;
+        }
+
             
-        taskRepository.insert(subjectId, title, status, parsedDeadline, reflection);
+        taskRepository.insert(subjectId, title, parsedStatus, parsedDeadline, reflection);
         return "redirect:/subjects/" + subjectId;
     }
     
@@ -265,8 +276,9 @@ public class TrackerController {
             @PathVariable("taskId") Long taskId,
             @RequestParam("subjectId") Long subjectId,
             @RequestParam("status") String status) {
-        boolean completed = "完了".equals(status); 
-        taskRepository.updateStatus(taskId, status, completed);
+        TaskStatus parsedStatus = TaskStatus.fromValue(status);
+        boolean completed = (parsedStatus == TaskStatus.DONE);
+        taskRepository.updateStatus(taskId, parsedStatus, completed);
         return "redirect:/subjects/" + subjectId;
     }
 

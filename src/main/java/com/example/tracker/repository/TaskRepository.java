@@ -1,6 +1,7 @@
 package com.example.tracker.repository;
 
 import com.example.tracker.model.Task;
+import com.example.tracker.model.TaskStatus;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -27,13 +28,13 @@ public interface TaskRepository {
     List<Task> findBySubjectId(Long subjectId);
 
     /**
-     * 指定した科目IDとステータスに紐ずくタスクを所得する。
+     * 指定した科目IDとステータスに紐づくタスクを取得する。
      * 
-     * @param subjectid 科目ID
-     * @param ststus ステータス　(未着手、進行中、完了)
-     * @return 絞り込まれたタスクにリスト
+     * @param subjectId 科目ID
+     * @param status ステータス (未着手、進行中、完了)
+     * @return 絞り込まれたタスクのリスト
      */
-    List<Task> findBySubjectIdAndStatus(Long subjectId, String status);
+    List<Task> findBySubjectIdAndStatus(Long subjectId, TaskStatus status);
    
     /**
      * 新しいタスクを未完了状態 ({@code completed = FALSE}) で登録する。
@@ -44,7 +45,7 @@ public interface TaskRepository {
      * @param deadline   タスクの期限
      * @param reflection タスクの振り返り
      */
-    void insert(Long subjectId, String title ,String status, LocalDate deadline, String reflection);
+    void insert(Long subjectId, String title, TaskStatus status, LocalDate deadline, String reflection);
 
     /**
      * タスクの完了状態を更新する。
@@ -84,7 +85,7 @@ public interface TaskRepository {
      * @param status    新しいステータス（未着手、進行中、完了）
      * @param completed 新しい完了状態
      */
-    void updateStatus(Long taskId, String status, boolean completed);
+    void updateStatus(Long taskId, TaskStatus status, boolean completed);
 
     /**
      * タスクの振り返り内容を更新する。
@@ -95,7 +96,7 @@ public interface TaskRepository {
     void updateReflection(Long taskId, String reflection); 
 
     /**
-     * 指定した日付より期限が古く、かつ未完了にタスクを所得する。
+     * 指定した日付より期限が古く、かつ未完了のタスクを取得する。
      * 
      * @param currentDate 現在の日付
      * @return 期限切れのタスクリスト(期限の古い順)

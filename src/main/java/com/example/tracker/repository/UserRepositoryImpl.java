@@ -12,7 +12,7 @@ import java.util.Optional;
  * {@link UserRepository} のJDBC実装クラス。
  * 
  * <p>Spring {@link JdbcTemplate} を使用して　{@code USERS}　テーブルに対する操作を実行する。
- * {@code @Repostory} としてSpring DIコンテナに登録される</p>
+ * {@code @Repository} としてSpring DIコンテナに登録される</p>
  * 
  * @author tracker-team
  * @version 1.0

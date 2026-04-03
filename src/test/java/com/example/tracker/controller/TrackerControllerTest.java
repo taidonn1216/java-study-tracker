@@ -3,6 +3,7 @@ package com.example.tracker.controller;
 import com.example.tracker.model.Subject;
 import com.example.tracker.model.SubjectSummary;
 import com.example.tracker.model.Task;
+import com.example.tracker.model.TaskStatus;
 import com.example.tracker.repository.SubjectRepository;
 import com.example.tracker.repository.TaskRepository;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -89,9 +91,9 @@ class TrackerControllerTest {
     void testSubjectDetails() throws Exception {
         Subject subject = new Subject(1L, "数学");
         List<Task> tasks = Arrays.asList(
-            new Task(1L, 1L, "問題集1-10ページ", true, "完了",LocalDate.parse("2026-02-20"), "記入してください"),
-            new Task(2L, 1L, "問題集11-20ページ", false, "進行中",LocalDate.parse("2026-02-20"), "記入してください"),
-            new Task(3L, 1L, "テスト勉強", false, "未着手",LocalDate.parse("2026-02-20"), "記入してください")
+            new Task(1L, 1L, "問題集1-10ページ", true,  TaskStatus.DONE,LocalDate.parse("2026-02-20"), "記入してください"),
+            new Task(2L, 1L, "問題集11-20ページ", false, TaskStatus.IN_PROGRESS,LocalDate.parse("2026-02-20"), "記入してください"),
+            new Task(3L, 1L, "テスト勉強", false, TaskStatus.NOT_STARTED,LocalDate.parse("2026-02-20"), "記入してください")
         );
         
         when(subjectRepository.findById(1L)).thenReturn(Optional.of(subject));
@@ -152,7 +154,7 @@ class TrackerControllerTest {
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/subjects/1"));
         
-        verify(taskRepository, times(1)).insert(eq(1L), eq( "問題集1-10ページ"), eq("進行中"), eq(LocalDate.parse("2026-02-27")), eq("頑張る"));
+        verify(taskRepository, times(1)).insert(eq(1L), eq( "問題集1-10ページ"), eq(TaskStatus.IN_PROGRESS), eq(LocalDate.parse("2026-02-27")), eq("頑張る"));
     }
     
     @Test
@@ -163,7 +165,7 @@ class TrackerControllerTest {
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/subjects/2"));
         
-        verify(taskRepository, times(1)).updateStatus(1L, "完了", true);   
+        verify(taskRepository, times(1)).updateStatus(1L, TaskStatus.DONE, true);   
     }
 
     @Test
@@ -174,7 +176,7 @@ class TrackerControllerTest {
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/subjects/2"));
         
-        verify(taskRepository, times(1)).updateStatus(1L, "進行中", false);
+        verify(taskRepository, times(1)).updateStatus(1L, TaskStatus.IN_PROGRESS, false);
     }
 
     @Test
@@ -220,7 +222,7 @@ class TrackerControllerTest {
         .andExpect(redirectedUrl("/subjects/1"))
         .andExpect(flash().attribute("errorMessage", "期限日を入力してください。"));
         
-        verify(taskRepository,never()).insert(anyLong(), anyString(), anyString(),any(),anyString());
+        verify(taskRepository,never()).insert(anyLong(), anyString(), any(TaskStatus.class),any(),anyString());
     }
 
     @Test
@@ -234,6 +236,6 @@ class TrackerControllerTest {
             .andExpect(redirectedUrl("/subjects/1"))
             .andExpect(flash().attribute("errorMessage", "期限日の形式が不正です。"));
 
-        verify(taskRepository, never()).insert(anyLong(), anyString(), anyString(), any(), anyString());    
+        verify(taskRepository, never()).insert(anyLong(), anyString(), any(TaskStatus.class), any(), anyString());    
     }
 }
