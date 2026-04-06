@@ -12,7 +12,7 @@ import org.springframework.security.web.SecurityFilterChain;
  * Spring Security の設定クラス
  * 
  * <p>ログイン・ログアウトの設定、アクセス制御、
- * パスワードエンコーダーの定義を行う。</p>
+ * パスワードエンコーダー、認証プロバイダーの定義を行う。</p>
  * 
  * @author tracer-team
  * @version 1.0
@@ -36,7 +36,7 @@ public class SecurityConfig {
     /**
      * セキュリティフィルターチェーンの設定。
      * 
-     * <p>ログインページ・CSS・JSは認証不要。
+     * <p>ログインページ・ ユーザー登録ページ・CSSは認証不要。
      * それ以外のページは認証が必須。</p>
      * 
      * @param http {@link HttpSecurity} インスタンス
@@ -47,7 +47,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/css/**", "/js/**").permitAll()
+                .requestMatchers("/login", "/register", "/css/**").permitAll()
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
@@ -77,7 +77,7 @@ public class SecurityConfig {
     /**
      * 認証プロバイダーの設定。
      * 
-     * <P>{@link CustomUserDetailsService} と {@link BCryptPasswordEncoder} を
+     * <p>{@link CustomUserDetailsService} と {@link BCryptPasswordEncoder} を
      * 使用してユーザー認証を行う。
      * 
      * @return {@link DaoAuthenticationProvider}

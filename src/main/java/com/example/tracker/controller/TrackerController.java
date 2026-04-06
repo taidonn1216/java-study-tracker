@@ -10,6 +10,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import com.example.tracker.service.TrackerService;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -46,6 +49,7 @@ public class TrackerController {
 
     private final SubjectRepository subjectRepository;
     private final TaskRepository taskRepository;
+    private final TrackerService trackerService;
 
     /**
      * コンストラクタインジェクション。
@@ -53,9 +57,11 @@ public class TrackerController {
      * @param subjectRepository 科目リポジトリ
      * @param taskRepository    タスクリポジトリ
      */
-    public TrackerController(SubjectRepository subjectRepository, TaskRepository taskRepository) {
+    public TrackerController(SubjectRepository subjectRepository, TaskRepository taskRepository, TrackerService trackerService
+) {
         this.subjectRepository = subjectRepository;
         this.taskRepository = taskRepository;
+        this.trackerService = trackerService;
     }
 
     /**
@@ -70,11 +76,14 @@ public class TrackerController {
      * @return ビュー名 {@code "index"}
      */
     @GetMapping("/")
-    public String index(Model model) {
-        List<SubjectSummary> subjects = subjectRepository.findAllWithTaskStats();
+    public String index(Model model, @AuthenticationPrincipal UserDetails userDetails) {
+        String username = userDetails.getUsername();
+        Long userId = trackerService.currentUserId(username);
+        
+        List<SubjectSummary> subjects = subjectRepository.findAllWithTaskStatsByUserId(userId);
         model.addAttribute("subjects", subjects);
 
-        List<Task> overdueTasks = taskRepository.findOverdueTasks(LocalDate.now());
+        List<Task> overdueTasks = taskRepository.findOverdueTasksByUserId(userId, LocalDate.now());
         model.addAttribute("overdueTasks", overdueTasks);
 
         return "index";
