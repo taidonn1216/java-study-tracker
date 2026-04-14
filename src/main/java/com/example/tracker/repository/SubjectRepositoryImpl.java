@@ -65,7 +65,7 @@ public class SubjectRepositoryImpl implements SubjectRepository {
      * </pre>
      */
     @Override
-    public List<SubjectSummary> findAllWithTaskStats() {
+    public List<SubjectSummary> findAllWithTaskStatsByUserId(Long userId) {
         String sql = """
             SELECT 
                 s.id,
@@ -74,6 +74,7 @@ public class SubjectRepositoryImpl implements SubjectRepository {
                 SUM(CASE WHEN t.completed = TRUE THEN 1 ELSE 0 END) as completed_tasks
             FROM SUBJECT s
             LEFT JOIN TASK t ON s.id = t.subject_id
+            WHERE s.user_id = ?
             GROUP BY s.id, s.name
             ORDER BY s.id
             """;
@@ -87,28 +88,28 @@ public class SubjectRepositoryImpl implements SubjectRepository {
             int completedTasks = rs.getInt("completed_tasks");
             
             return new SubjectSummary(subject, totalTasks, completedTasks);
-        });
+        }, userId);
     }
     
     /** {@inheritDoc} */
     @Override
-    public Optional<Subject> findById(Long id) {
-        String sql = "SELECT id, name FROM SUBJECT WHERE id = ?";
-        List<Subject> results = jdbcTemplate.query(sql, subjectRowMapper, id);
+    public Optional<Subject> findByIdAndUserId(Long id, Long userId) {
+        String sql = "SELECT id, name FROM SUBJECT WHERE id = ? AND user_id = ?";
+        List<Subject> results = jdbcTemplate.query(sql, subjectRowMapper, id, userId);
         return results.isEmpty() ? Optional.empty() : Optional.of(results.get(0));
     }
 
     /** {@inheritDoc} */
     @Override
-    public void insert(String name) {
-        String sql = "INSERT INTO SUBJECT (name) VALUES (?)";
-        jdbcTemplate.update(sql, name);
+    public void insert(String name, Long userId) {
+        String sql = "INSERT INTO SUBJECT (name, user_id) VALUES (?, ?)";
+        jdbcTemplate.update(sql, name, userId);
     }
 
     /** {@inheritDoc} */
     @Override
-    public void deleteById(Long id) {
-        String sql = "DELETE FROM SUBJECT WHERE id = ?";
-        jdbcTemplate.update(sql, id);
+    public int deleteByIdAndUserId(Long id, Long userId) {
+        String sql = "DELETE FROM SUBJECT WHERE id = ? AND user_id = ?";
+        return jdbcTemplate.update(sql, id, userId);
     }
 }

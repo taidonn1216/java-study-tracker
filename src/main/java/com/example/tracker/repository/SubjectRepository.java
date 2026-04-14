@@ -36,7 +36,7 @@ public interface SubjectRepository {
      *
      * @return 科目ID昇順の {@link SubjectSummary} リスト
      */
-    List<SubjectSummary> findAllWithTaskStats();
+    List<SubjectSummary> findAllWithTaskStatsByUserId(Long userId);
 
     /**
      * 指定したIDの科目を検索する。
@@ -45,7 +45,7 @@ public interface SubjectRepository {
      * @return 科目が見つかった場合はその {@link Optional}、
      *         見つからない場合は {@link Optional#empty()}
      */
-    Optional<Subject> findById(Long id);
+    Optional<Subject> findByIdAndUserId(Long id, Long userId);
 
     /**
      * 新しい科目を登録する。
@@ -54,7 +54,7 @@ public interface SubjectRepository {
      *
      * @param name 科目名（NULL不可）
      */
-    void insert(String name);
+    void insert(String name, Long userId);
 
     /**
      * 指定したIDの科目を削除する。
@@ -64,5 +64,5 @@ public interface SubjectRepository {
      *
      * @param id 削除対象の科目ID
      */
-    void deleteById(Long id);
+    int deleteByIdAndUserId(Long id, Long userId);
 }

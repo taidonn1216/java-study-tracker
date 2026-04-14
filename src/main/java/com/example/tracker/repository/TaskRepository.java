@@ -2,7 +2,6 @@ package com.example.tracker.repository;
 
 import com.example.tracker.model.Task;
 import com.example.tracker.model.TaskStatus;
-
 import java.time.LocalDate;
 import java.util.List;
 
@@ -23,44 +22,41 @@ public interface TaskRepository {
      * 指定した科目IDに紐づくすべてのタスクをID昇順で取得する。
      *
      * @param subjectId 科目ID
+     * @param userId ログインユーザーID(所有者条件)
      * @return タスクのリスト（空の場合は空リスト）
      */
-    List<Task> findBySubjectId(Long subjectId);
+    List<Task> findBySubjectIdAndUserId(Long subjectId, Long userId);
 
     /**
      * 指定した科目IDとステータスに紐づくタスクを取得する。
      * 
      * @param subjectId 科目ID
      * @param status ステータス (未着手、進行中、完了)
+     * @param userId ログインユーザーID(所有者条件)
      * @return 絞り込まれたタスクのリスト
      */
-    List<Task> findBySubjectIdAndStatus(Long subjectId, TaskStatus status);
+    List<Task> findBySubjectIdAndStatusAndUserId(Long subjectId, TaskStatus status, Long userId);
+   
+    /**
+     * 指定した日付より期限が古く、かつ未完了のタスクを取得する。
+     * 
+     * @param userId ログインユーザーID(所有者条件)
+     * @param today 現在の日付
+     * @return 期限切れのタスクリスト(期限の古い順)
+     */
+    List<Task> findOverdueTasksByUserId(Long userId, LocalDate today);
+
    
     /**
      * 新しいタスクを未完了状態 ({@code completed = FALSE}) で登録する。
      *
      * @param subjectId タスクを追加する科目のID
-     * @param title     タスクのタイトル（NULL不可）
-     * @param status     タスクのステータス
-     * @param deadline   タスクの期限
+     * @param title タスクのタイトル（NULL不可）
+     * @param status タスクのステータス
+     * @param deadline タスクの期限
      * @param reflection タスクの振り返り
      */
     void insert(Long subjectId, String title, TaskStatus status, LocalDate deadline, String reflection);
-
-    /**
-     * タスクの完了状態を更新する。
-     *
-     * @param taskId    更新対象のタスクID
-     * @param completed 新しい完了状態（{@code true}: 完了、{@code false}: 未完了）
-     */
-    void updateCompleted(Long taskId, boolean completed);
-
-    /**
-     * 指定したIDのタスクを削除する。
-     *
-     * @param taskId 削除対象のタスクID
-     */
-    void deleteById(Long taskId);
 
     /**
      * 指定した科目のタスク総数を取得する。
@@ -77,29 +73,54 @@ public interface TaskRepository {
      * @return 完了済みタスク数
      */
     int countCompletedBySubjectId(Long subjectId);
-
+    
     /**
-     * タスクのステータスと完了状態を更新する。
-     *
-     * @param taskId    更新対象のタスクID
-     * @param status    新しいステータス（未着手、進行中、完了）
-     * @param completed 新しい完了状態
-     */
-    void updateStatus(Long taskId, TaskStatus status, boolean completed);
-
-    /**
-     * タスクの振り返り内容を更新する。
-     *
-     * @param taskId     更新対象のタスクID
-     * @param reflection 新しい振り返り内容
-     */
-    void updateReflection(Long taskId, String reflection); 
-
-    /**
-     * 指定した日付より期限が古く、かつ未完了のタスクを取得する。
+     * タスクのステータスと完了状態を、所有者条件付きで更新する。
      * 
-     * @param currentDate 現在の日付
-     * @return 期限切れのタスクリスト(期限の古い順)
+     * @param taskId 更新対象のタスクID
+     * @param status 新しいステータス
+     * @param completed 新しい完了状態
+     * @param userId ログインユーザーID(所有者条件)
+     * @return 更新件数 (0: 対象なし / 1: 更新成功)
      */
-    List<Task> findOverdueTasks(LocalDate currentDate);
+    int updateStatusByIdAndUserId(Long taskId, TaskStatus status, boolean completed, Long userId);
+
+    /**
+     * タスクの完了状態を、所有者条件つきで更新する。
+     * 
+     * @param taskId 更新対象のタスクID
+     * @param completed 新しい完了状態
+     * @param userId ログインユーザーID(所有者条件)
+     * @return 更新件数 (0: 対象なし / 1: 更新成功)
+     */
+    int updateCompletedByIdAndUserId(Long taskId, boolean completed, Long userId);
+    
+    /**
+     * 振り返り内容を、所有者条件付きで更新する。
+     * 
+     * @param taskId 更新対象のタスクID
+     * @param reflection 新しい振り返り内容
+     * @param userId ログインユーザーID(所有者条件)
+     * @return 更新件数 (0: 対象なし / 1: 更新成功)
+     */
+    int updateReflectionByIdAndUserId(Long taskId, String reflection, Long userId);
+    
+    /**
+     * 指定したタスクを、所有者条件付きで削除する。
+     * 
+     * @param taskId 削除対象のタスクID
+     * @param userId ログインユーザーID(所有者条件)
+     * @return 削除件数 (0: 対象なし / 1: 削除成功)
+     */
+    int deleteByIdAndUserId(Long taskId, Long userId);
+
+    /**
+     * 指定したタスクが条件を満たすのか判定する。
+     * 
+     * @param taskId タスクID
+     * @param subjectId 科目ID
+     * @param userId ログインユーザーID(所有者条件)
+     * @return 条件を満たす場合は {@code true}
+     */
+    boolean existsByIdAndSubjectIdAndUserId(Long taskId, Long subjectId, Long userId);
 }

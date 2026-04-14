@@ -32,19 +32,36 @@ class SubjectRepositoryImplTest {
     
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    private Long userId;
     
     @BeforeEach
     void setUp() {
         // テストデータをクリア
         jdbcTemplate.execute("DELETE FROM TASK");
         jdbcTemplate.execute("DELETE FROM SUBJECT");
+        jdbcTemplate.execute("DELETE FROM USERS");
         jdbcTemplate.execute("ALTER TABLE SUBJECT ALTER COLUMN id RESTART WITH 1");
         jdbcTemplate.execute("ALTER TABLE TASK ALTER COLUMN id RESTART WITH 1");
+        jdbcTemplate.execute("ALTER TABLE USERS ALTER COLUMN id RESTART WITH 1");
+
+        jdbcTemplate.update(
+            "INSERT INTO USERS (username, password, enabled) VALUES (?, ?, ?)",
+            "testuser",
+            "$2b$10$8gl4P.2H1sEOH0mU8moubOHvLxrfqr6AKtJ326H3CbgJ2dikD9/ma",
+            true
+        );
+        userId = jdbcTemplate.queryForObject(
+            "SELECT id FROM USERS WHERE username = ?", 
+            Long.class,
+            "testuser"
+        );
+
     }
     
     @Test
     void testInsert() {
-        subjectRepository.insert("数学");
+        subjectRepository.insert("数学", userId);
         
         List<Subject> subjects = subjectRepository.findAll();
         assertEquals(1, subjects.size());
@@ -53,9 +70,9 @@ class SubjectRepositoryImplTest {
     
     @Test
     void testFindAll() {
-        subjectRepository.insert("数学");
-        subjectRepository.insert("英語");
-        subjectRepository.insert("理科");
+        subjectRepository.insert("数学", userId);
+        subjectRepository.insert("英語", userId);
+        subjectRepository.insert("理科", userId);
         
         List<Subject> subjects = subjectRepository.findAll();
         assertEquals(3, subjects.size());
@@ -66,29 +83,29 @@ class SubjectRepositoryImplTest {
     
     @Test
     void testFindById_Found() {
-        subjectRepository.insert("数学");
+        subjectRepository.insert("数学", userId);
         
-        Optional<Subject> subject = subjectRepository.findById(1L);
+        Optional<Subject> subject = subjectRepository.findByIdAndUserId(1L, userId);
         assertTrue(subject.isPresent());
         assertEquals("数学", subject.get().getName());
     }
     
     @Test
     void testFindById_NotFound() {
-        Optional<Subject> subject = subjectRepository.findById(999L);
+        Optional<Subject> subject = subjectRepository.findByIdAndUserId(999L, userId);
         assertFalse(subject.isPresent());
     }
     
     @Test
     void testDeleteById() {
-        subjectRepository.insert("数学");
-        subjectRepository.insert("英語");
+        subjectRepository.insert("数学", userId);
+        subjectRepository.insert("英語", userId);
         
         List<Subject> subjects = subjectRepository.findAll();
         assertEquals(2, subjects.size());
         
         Long idToDelete = subjects.get(0).getId();
-        subjectRepository.deleteById(idToDelete);
+        subjectRepository.deleteByIdAndUserId(idToDelete, userId);
         
         subjects = subjectRepository.findAll();
         assertEquals(1, subjects.size());
@@ -97,10 +114,10 @@ class SubjectRepositoryImplTest {
     
     @Test
     void testFindAllWithTaskStats_NoTasks() {
-        subjectRepository.insert("数学");
-        subjectRepository.insert("英語");
+        subjectRepository.insert("数学", userId);
+        subjectRepository.insert("英語", userId);
         
-        List<SubjectSummary> summaries = subjectRepository.findAllWithTaskStats();
+        List<SubjectSummary> summaries = subjectRepository.findAllWithTaskStatsByUserId(userId);
         assertEquals(2, summaries.size());
         
         assertEquals("数学", summaries.get(0).getSubject().getName());
@@ -110,7 +127,7 @@ class SubjectRepositoryImplTest {
     
     @Test
     void testFindAllWithTaskStats_WithTasks() {
-        subjectRepository.insert("数学");
+        subjectRepository.insert("数学", userId);
         Long subjectId = subjectRepository.findAll().get(0).getId();
         
         // タスクを追加
@@ -124,9 +141,9 @@ class SubjectRepositoryImplTest {
             Long.class, 
             subjectId
         );
-        taskRepository.updateCompleted(taskIds.get(0), true);
+        taskRepository.updateCompletedByIdAndUserId(taskIds.get(0), true, userId);
         
-        List<SubjectSummary> summaries = subjectRepository.findAllWithTaskStats();
+        List<SubjectSummary> summaries = subjectRepository.findAllWithTaskStatsByUserId(userId);
         assertEquals(1, summaries.size());
         assertEquals("数学", summaries.get(0).getSubject().getName());
         assertEquals(3, summaries.get(0).getTotalTasks());
