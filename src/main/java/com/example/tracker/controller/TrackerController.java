@@ -4,20 +4,17 @@ import com.example.tracker.model.Subject;
 import com.example.tracker.model.SubjectSummary;
 import com.example.tracker.model.Task;
 import com.example.tracker.model.TaskStatus;
-import com.example.tracker.repository.SubjectRepository;
-import com.example.tracker.repository.TaskRepository;
+import com.example.tracker.service.TrackerService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import com.example.tracker.service.TrackerService;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.Optional;
 import java.util.Comparator;
 
 /**
@@ -36,31 +33,26 @@ import java.util.Comparator;
  *   <tr><td>POST</td><td>/subjects/{subjectId}/tasks</td><td>タスク登録</td></tr>
  *   <tr><td>POST</td><td>/tasks/{taskId}/complete</td><td>タスク完了切替</td></tr>
  *   <tr><td>POST</td><td>/tasks/{taskId}/delete</td><td>タスク削除</td></tr>
+ *   <tr><tb>POST</tb><tb>/tasks/{taskId}/status</tb><tb>ステータス更新</tb></tr> 
+ *   <tr><td>POST</tb><tb>/tasks/{taskId}/reflection</tb><tb>振り返り更新</tb></tr>
  * </table>
  *
  * @author tracker-team
  * @version 1.0
  * @since 1.0
- * @see SubjectRepository
- * @see TaskRepository
+ * @see TrackerService
  */
 @Controller
 public class TrackerController {
 
-    private final SubjectRepository subjectRepository;
-    private final TaskRepository taskRepository;
     private final TrackerService trackerService;
 
     /**
      * コンストラクタインジェクション。
      *
-     * @param subjectRepository 科目リポジトリ
-     * @param taskRepository    タスクリポジトリ
+     * @param trackerService トラッカーサービス
      */
-    public TrackerController(SubjectRepository subjectRepository, TaskRepository taskRepository, TrackerService trackerService
-) {
-        this.subjectRepository = subjectRepository;
-        this.taskRepository = taskRepository;
+    public TrackerController( TrackerService trackerService) {
         this.trackerService = trackerService;
     }
 
@@ -69,23 +61,22 @@ public class TrackerController {
      *
      * <p>全科目をタスク統計付きで取得し、
      * {@code subjects} 属性としてモデルに追加する。<br>
-     * また、本日の日付を基準に未完了の期限切れのタスクを所得し、
+     * また、本日の日付を基準に未完了の期限切れのタスクを取得し、
      * {@code overdueTasks} 属性としてモデルに追加する。</p>
      *
      * @param model ビューにデータを渡すSpring MVC Model
+     * @param userDetails　ログイン中のユーザー情報
      * @return ビュー名 {@code "index"}
      */
     @GetMapping("/")
     public String index(Model model, @AuthenticationPrincipal UserDetails userDetails) {
         String username = userDetails.getUsername();
-        Long userId = trackerService.currentUserId(username);
         
-        List<SubjectSummary> subjects = subjectRepository.findAllWithTaskStatsByUserId(userId);
+        List<SubjectSummary> subjects = trackerService.getSubjectSummariesForCurrentUser(username);
+        List<Task> overdueTasks = trackerService.getOverdueTasksForCurrentUser(username, LocalDate.now());
+       
         model.addAttribute("subjects", subjects);
-
-        List<Task> overdueTasks = taskRepository.findOverdueTasksByUserId(userId, LocalDate.now());
         model.addAttribute("overdueTasks", overdueTasks);
-
         return "index";
     }
     
@@ -93,11 +84,15 @@ public class TrackerController {
      * 新しい科目を登録し、一覧ページへリダイレクトする。
      *
      * @param name フォームから送信された科目名
+     * @param userDetails ログイン中のユーザー情報
      * @return {@code "/"} へのリダイレクト
      */
     @PostMapping("/subjects")
-    public String createSubject(@RequestParam("name") String name) {
-        subjectRepository.insert(name);
+    public String createSubject(
+            @RequestParam("name") String name, 
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = trackerService.currentUserId(userDetails.getUsername());
+        trackerService.createSubjectForCurrentUser(name, userId);
         return "redirect:/";
     }
     
@@ -110,8 +105,11 @@ public class TrackerController {
      * @return {@code "/"} へのリダイレクト
      */
     @PostMapping("/subjects/{id}/delete")
-    public String deleteSubject(@PathVariable("id") Long id) {
-        subjectRepository.deleteById(id);
+    public String deleteSubject(
+            @PathVariable("id") Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = trackerService.currentUserId(userDetails.getUsername());        
+        trackerService.deleteSubjectForCurrentUser(id, userId);
         return "redirect:/";
     }
     
@@ -129,9 +127,11 @@ public class TrackerController {
      *   <li>{@code incompleteTasks} — 未完了タスク数</li>
      * </ul>
      *
-     * @param id    科目ID
+     * @param id 科目ID
      * @param statusFilter 絞り込み条件(未着手、進行中、完了)
+     * @param sortOrder 並び替え条件(idAsc/ idDesc/ deadlineAsc/ deadlineDesc)
      * @param model Spring MVC Model
+     * @param userDetails ログイン中のユーザー情報
      * @return ビュー名 {@code "subject_details"} または {@code "/"} へのリダイレクト
      */
      @GetMapping("/subjects/{id}")
@@ -139,31 +139,32 @@ public class TrackerController {
             @PathVariable("id") Long id,
             @RequestParam(name = "statusFilter", required = false) String statusFilter,
             @RequestParam(name = "sortOrder", required = false, defaultValue = "idAsc") String sortOrder, //並び替え条件
-             Model model) {
+             Model model,
+            @AuthenticationPrincipal UserDetails userDetails) {
         
-        Optional<Subject> subjectOpt = subjectRepository.findById(id);
+        Long userId = trackerService.currentUserId(userDetails.getUsername()); 
         
-        
-        if (subjectOpt.isEmpty()) {
+        //subjectOpt → Subject を直接取得(見つからなければ　RuntimeException → リダイレクト)
+        Subject subject;
+        try {
+            subject = trackerService.getSubjectForCurrentUser(id, userId);
+        } catch (RuntimeException e) {
             return "redirect:/";
         }
 
-        // OptionalからSubjectを取り出す
-        Subject subject = subjectOpt.get();
-       
-       // ① 全タスクを取得して統計の計算に使用する（全体の件数を表示するため）
-        List<Task> allTasks = taskRepository.findBySubjectId(id);
+       // 全タスク（統計用）
+        List<Task> allTasks = trackerService.getTasksForSubject(id, userId);
         long totalTasks = allTasks.size();
         long completedTasks = allTasks.stream().filter(task -> Boolean.TRUE.equals(task.isCompleted())).count();
         long incompleteTasks = totalTasks - completedTasks;
         
-       // ② 表示用のタスクを絞り込む
+       // ② 表示用タスク(絞り込み)
         List<Task> displayTasks;
         if (statusFilter == null || statusFilter.isEmpty()) {
             displayTasks = allTasks;
         } else {
             TaskStatus parsedFilter = TaskStatus.fromValue(statusFilter);
-            displayTasks = taskRepository.findBySubjectIdAndStatus(id, parsedFilter);
+            displayTasks = trackerService.getTasksByStatus(id, parsedFilter, userId);
         }
 
         //③ 取得したタスクを並び替える
@@ -193,7 +194,6 @@ public class TrackerController {
             displayTasks.sort(Comparator.comparing(Task::getId));
         }
         
-       
         model.addAttribute("subject", subject);
         model.addAttribute("tasks", displayTasks); // 絞り込んだタスク画面に渡す
         model.addAttribute("totalTasks", totalTasks);
@@ -210,6 +210,7 @@ public class TrackerController {
     /**
      * 指定した科目に新しいタスクを登録し、科目詳細ページへリダイレクトする。
      * 
+     * <p>科目がログインユーザーの所有ではない場合は{@code "/"} へリダイレクトする。</p>
      * <p>期限日が未入力または不正な形式の場合、タスクを登録せず
      * フラッシュメッセージとしてエラー内容を設定して科目詳細ページへ戻す。</p>
      *
@@ -219,6 +220,7 @@ public class TrackerController {
      * @param deadline   フォームから送信された期限
      * @param reflection フォームから送信された振り返り内容
      * @param redirectAttributes　リダイレクト先へフラッシュメッセージを渡すための属性
+     * @param userDetails ログイン中のユーザー情報     
      * @return {@code "/subjects/{subjectId}"} へのリダイレクト
      */
     @PostMapping("/subjects/{subjectId}/tasks")
@@ -228,8 +230,17 @@ public class TrackerController {
             @RequestParam("status") String status,       
             @RequestParam("deadline") String deadline,   
             @RequestParam("reflection") String reflection, 
-            RedirectAttributes redirectAttributes
-        ) {
+            RedirectAttributes redirectAttributes,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        Long userId = trackerService.currentUserId(userDetails.getUsername());        
+        
+        try{
+            trackerService.getSubjectForCurrentUser(subjectId, userId);
+        } catch (RuntimeException e) {
+            return "redirect:/";
+        }
+
         if(deadline == null || deadline.isBlank()) {
             redirectAttributes.addFlashAttribute("errorMessage", "期限日を入力してください。");
             return "redirect:/subjects/" + subjectId;
@@ -252,8 +263,7 @@ public class TrackerController {
             return "redirect:/subjects/" + subjectId;
         }
 
-            
-        taskRepository.insert(subjectId, title, parsedStatus, parsedDeadline, reflection);
+        trackerService.createTask(subjectId, userId, title, parsedStatus, parsedDeadline, reflection);
         return "redirect:/subjects/" + subjectId;
     }
     
@@ -262,55 +272,41 @@ public class TrackerController {
      *
      * @param taskId    削除対象のタスクID
      * @param subjectId リダイレクト先の科目ID
+     * @param userDetails ログイン中のユーザー情報
      * @return {@code "/subjects/{subjectId}"} へのリダイレクト
      */
     @PostMapping("/tasks/{taskId}/delete")
     public String deleteTask(
             @PathVariable("taskId") Long taskId,
-            @RequestParam("subjectId") Long subjectId) {
-        taskRepository.deleteById(taskId);
+            @RequestParam("subjectId") Long subjectId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = trackerService.currentUserId(userDetails.getUsername());
+        trackerService.deleteTaskForCurrentUser(taskId, userId);
         return "redirect:/subjects/" + subjectId;
     }
     
     /**
      * タスクのステータスを次の状態に更新し、科目詳細ページへリダイレクトする。
      *
-     * @param taskId    更新対象のタスクID
+     * @param taskId 更新対象のタスクID
      * @param subjectId リダイレクト先の科目ID
-     * @param status 変更後のステータス
+     * @param status 変更後のステータス文字列
+     * @param userDetails ログイン中のユーザー情報
      * @return {@code "/subjects/{subjectId}"} へのリダイレクト
+     * @throws IllegalArgumentException {@code status} が不正の場合
      */
     @PostMapping("/tasks/{taskId}/status")
     public String completeTask(
             @PathVariable("taskId") Long taskId,
             @RequestParam("subjectId") Long subjectId,
-            @RequestParam("status") String status) {
+            @RequestParam("status") String status,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = trackerService.currentUserId(userDetails.getUsername());
         TaskStatus parsedStatus = TaskStatus.fromValue(status);
-        boolean completed = (parsedStatus == TaskStatus.DONE);
-        taskRepository.updateStatus(taskId, parsedStatus, completed);
+        trackerService.updateTaskStatusForCurrentUser(taskId, subjectId, userId, parsedStatus);
         return "redirect:/subjects/" + subjectId;
     }
 
-     /**
-     * 旧UI／既存テスト互換の完了トグルエンドポイント。
-     *
-     * <p>画面では {@code /tasks/{taskId}/status} を利用しているが、
-     * {@link com.example.tracker.controller.TrackerControllerTest} が
-     * 完了フラグのみ更新するこの経路を呼び出すため公開している。</p>
-     *
-     * @param taskId    更新対象のタスクID
-     * @param subjectId リダイレクト先の科目ID
-     * @param completed 新しい完了状態
-     * @return {@code "/subjects/{subjectId}"} へのリダイレクト
-     */
-    @PostMapping("/tasks/{taskId}/complete")
-    public String toggleCompleteTask(
-            @PathVariable("taskId") Long taskId,
-            @RequestParam("subjectId") Long subjectId,
-            @RequestParam("completed") boolean completed) {
-        taskRepository.updateCompleted(taskId, completed);
-        return "redirect:/subjects/" + subjectId;
-    }
     /**
      * タスクの振り返り内容を更新し、科目詳細ページへリダイレクトする。
      *
@@ -323,9 +319,10 @@ public class TrackerController {
     public String updateReflection(
             @PathVariable("taskId") Long taskId,
             @RequestParam("subjectId") Long subjectId,
-            @RequestParam("reflection") String reflection) {
-        
-        taskRepository.updateReflection(taskId, reflection);
+            @RequestParam("reflection") String reflection,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = trackerService.currentUserId(userDetails.getUsername());
+        trackerService.updateReflectionForCurrentUser(taskId, reflection, userId);
         return "redirect:/subjects/" + subjectId;
     }
 }

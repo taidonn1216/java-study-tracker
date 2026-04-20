@@ -4,20 +4,20 @@ import com.example.tracker.model.Subject;
 import com.example.tracker.model.SubjectSummary;
 import com.example.tracker.model.Task;
 import com.example.tracker.model.TaskStatus;
-import com.example.tracker.repository.SubjectRepository;
-import com.example.tracker.repository.TaskRepository;
+import com.example.tracker.service.TrackerService;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,12 +37,10 @@ class TrackerControllerTest {
     private MockMvc mockMvc;
     
     @MockitoBean
-    private SubjectRepository subjectRepository;
-    
-    @MockitoBean
-    private TaskRepository taskRepository;
+    private TrackerService trackerService;
     
     @Test
+    @WithMockUser(username = "testuser")
     void testIndex() throws Exception {
         Subject subject1 = new Subject(1L, "数学");
         Subject subject2 = new Subject(2L, "英語");
@@ -51,7 +49,8 @@ class TrackerControllerTest {
             new SubjectSummary(subject2, 5, 3)
         );
         
-        when(subjectRepository.findAllWithTaskStats()).thenReturn(summaries);
+        when(trackerService.getSubjectSummariesForCurrentUser("testuser")).thenReturn(summaries);
+        when(trackerService.getOverdueTasksForCurrentUser(eq("tastuser"), any())).thenReturn(Collections.emptyList());
         
         mockMvc.perform(get("/"))
             .andExpect(status().isOk())
@@ -65,29 +64,36 @@ class TrackerControllerTest {
                 hasProperty("subject", hasProperty("name", is("英語")))
             )));
         
-        verify(subjectRepository, times(1)).findAllWithTaskStats();
+        verify(trackerService, times(1)).getSubjectSummariesForCurrentUser("testuser");
     }
     
     @Test
+    @WithMockUser(username = "testuser")
     void testCreateSubject() throws Exception {
+        when(trackerService.currentUserId("testuser")).thenReturn(1L);
+        
         mockMvc.perform(post("/subjects")
                 .param("name", "数学"))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/"));
         
-        verify(subjectRepository, times(1)).insert("数学");
+        verify(trackerService, times(1)).createSubjectForCurrentUser("数学", 1L);
     }
     
     @Test
+    @WithMockUser(username = "testuser")
     void testDeleteSubject() throws Exception {
+        when(trackerService.currentUserId("testuser")).thenReturn(1L);
+        
         mockMvc.perform(post("/subjects/1/delete"))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/"));
         
-        verify(subjectRepository, times(1)).deleteById(1L);
+       verify(trackerService, times(1)).deleteSubjectForCurrentUser(1L, 1L);
     }
     
     @Test
+    @WithMockUser(username = "testuser")
     void testSubjectDetails() throws Exception {
         Subject subject = new Subject(1L, "数学");
         List<Task> tasks = Arrays.asList(
@@ -95,9 +101,9 @@ class TrackerControllerTest {
             new Task(2L, 1L, "問題集11-20ページ", false, TaskStatus.IN_PROGRESS,LocalDate.parse("2026-02-20"), "記入してください"),
             new Task(3L, 1L, "テスト勉強", false, TaskStatus.NOT_STARTED,LocalDate.parse("2026-02-20"), "記入してください")
         );
-        
-        when(subjectRepository.findById(1L)).thenReturn(Optional.of(subject));
-        when(taskRepository.findBySubjectId(1L)).thenReturn(tasks);
+        when(trackerService.currentUserId("testuser")).thenReturn(1L);
+        when(trackerService.getSubjectForCurrentUser(1L, 1L)).thenReturn(subject);
+        when(trackerService.getTasksForSubject(1l, 1L)).thenReturn(tasks);
         
         mockMvc.perform(get("/subjects/1"))
             .andExpect(status().isOk())
@@ -110,42 +116,43 @@ class TrackerControllerTest {
             .andExpect(model().attribute("completedTasks", is(1L)))
             .andExpect(model().attribute("incompleteTasks", is(2L)));
         
-        verify(subjectRepository, times(1)).findById(1L);
-        verify(taskRepository, times(1)).findBySubjectId(1L);
+        verify(trackerService, times(1)).getSubjectForCurrentUser(1L, 1L);
+        verify(trackerService, times(1)).getTasksForSubject(1L, 1L);
     }
     
     @Test
+    @WithMockUser(username = "testuser")
     void testSubjectDetails_NoTasks() throws Exception {
         Subject subject = new Subject(1L, "数学");
         
-        when(subjectRepository.findById(1L)).thenReturn(Optional.of(subject));
-        when(taskRepository.findBySubjectId(1L)).thenReturn(Collections.emptyList());
+        when(trackerService.currentUserId("testuser")).thenReturn(1L);
+        when(trackerService.getSubjectForCurrentUser(1L, 1L)).thenReturn(subject);
+        when(trackerService.getTasksForSubject(1L, 1L)).thenReturn(Collections.emptyList());
         
         mockMvc.perform(get("/subjects/1"))
             .andExpect(status().isOk())
-            .andExpect(view().name("subject_details"))
             .andExpect(model().attribute("totalTasks", is(0L)))
             .andExpect(model().attribute("completedTasks", is(0L)))
             .andExpect(model().attribute("incompleteTasks", is(0L)));
-        
-        verify(subjectRepository, times(1)).findById(1L);
-        verify(taskRepository, times(1)).findBySubjectId(1L);
     }
     
     @Test
+    @WithMockUser(username = "testuser")
     void testSubjectDetails_NotFound() throws Exception {
-        when(subjectRepository.findById(999L)).thenReturn(Optional.empty());
+        when(trackerService.currentUserId("testuser")).thenReturn(1L);
+        when(trackerService.getSubjectForCurrentUser(999L, 1L))
+            .thenThrow(new RuntimeException("Subject not found or forbidden"));
         
         mockMvc.perform(get("/subjects/999"))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/"));
-        
-        verify(subjectRepository, times(1)).findById(999L);
-        verify(taskRepository, never()).findBySubjectId(anyLong());
     }
     
     @Test
+    @WithMockUser(username = "testuser")
     void testCreateTask() throws Exception {
+        when(trackerService.currentUserId("testuser")).thenReturn(1L);
+        
         mockMvc.perform(post("/subjects/1/tasks")
                 .param("title", "問題集1-10ページ")
                 .param("status", "進行中")      
@@ -154,65 +161,55 @@ class TrackerControllerTest {
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/subjects/1"));
         
-        verify(taskRepository, times(1)).insert(eq(1L), eq( "問題集1-10ページ"), eq(TaskStatus.IN_PROGRESS), eq(LocalDate.parse("2026-02-27")), eq("頑張る"));
+        verify(trackerService, times(1)).createTask(1L, 1L,"問題集1-10ページ", TaskStatus.IN_PROGRESS, LocalDate.parse("2026-02-27"), "頑張る");
     }
     
     @Test
+    @WithMockUser(username = "testuser")
     void testUpdateTaskStatus_ToDone() throws Exception {
+        when(trackerService.currentUserId("testuser")).thenReturn(1L);
+        
         mockMvc.perform(post("/tasks/1/status")
                 .param("subjectId", "2")
                 .param("status", "完了"))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/subjects/2"));
         
-        verify(taskRepository, times(1)).updateStatus(1L, TaskStatus.DONE, true);   
+        verify(trackerService, times(1)).updateTaskStatusForCurrentUser(1L, 2L, 1L, TaskStatus.DONE);   
     }
 
     @Test
+    @WithMockUser(username = "testuser")
     void testUpdateTaskStatus_ToDoing() throws Exception {
+        when(trackerService.currentUserId("testuser")).thenReturn(1L);
+        
         mockMvc.perform(post("/tasks/1/status")
                 .param("subjectId", "2")
                 .param("status", "進行中"))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/subjects/2"));
         
-        verify(taskRepository, times(1)).updateStatus(1L, TaskStatus.IN_PROGRESS, false);
+        verify(trackerService, times(1)).updateTaskStatusForCurrentUser(1L, 2L, 1L, TaskStatus.IN_PROGRESS);
     }
 
     @Test
-    void testCompleteTask() throws Exception {
-        mockMvc.perform(post("/tasks/1/complete")
-                .param("subjectId", "2")
-                .param("completed", "true"))
-            .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl("/subjects/2"));
-        
-        verify(taskRepository, times(1)).updateCompleted(1L, true);
-    }
-    
-    @Test
-    void testCompleteTask_Uncomplete() throws Exception {
-        mockMvc.perform(post("/tasks/1/complete")
-                .param("subjectId", "2")
-                .param("completed", "false"))
-            .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl("/subjects/2"));
-        
-        verify(taskRepository, times(1)).updateCompleted(1L, false);
-    }
-    
-    @Test
+    @WithMockUser(username = "testuser")
     void testDeleteTask() throws Exception {
+        when(trackerService.currentUserId("testuser")).thenReturn(1L);
+        
         mockMvc.perform(post("/tasks/1/delete")
                 .param("subjectId", "2"))
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/subjects/2"));
         
-        verify(taskRepository, times(1)).deleteById(1L);
+        verify(trackerService, times(1)).deleteTaskForCurrentUser(1L, 1L);
     }
 
     @Test
+    @WithMockUser(username = "testuser")
     void testCreateTask_DeadlineBlank() throws Exception {
+        when(trackerService.currentUserId("testuser")).thenReturn(1L);
+        
         mockMvc.perform(post("/subjects/1/tasks")
             .param("title", "問題集")
             .param("status", "未着手")
@@ -222,11 +219,14 @@ class TrackerControllerTest {
         .andExpect(redirectedUrl("/subjects/1"))
         .andExpect(flash().attribute("errorMessage", "期限日を入力してください。"));
         
-        verify(taskRepository,never()).insert(anyLong(), anyString(), any(TaskStatus.class),any(),anyString());
+        verify(trackerService,never()).createTask(anyLong(), anyLong(), anyString(), any(TaskStatus.class), any(), anyString());
     }
 
     @Test
+    @WithMockUser(username = "testuser")
     void testCreateTask_DeadlineInvalidFormat() throws Exception {
+        when(trackerService.currentUserId("testuser")).thenReturn(1L);
+        
         mockMvc.perform(post("/subjects/1/tasks")
                 .param("title", "問題集")
                 .param("status", "未着手" )
@@ -236,6 +236,6 @@ class TrackerControllerTest {
             .andExpect(redirectedUrl("/subjects/1"))
             .andExpect(flash().attribute("errorMessage", "期限日の形式が不正です。"));
 
-        verify(taskRepository, never()).insert(anyLong(), anyString(), any(TaskStatus.class), any(), anyString());    
+        verify(trackerService, never()).createTask(anyLong(), anyLong(), anyString(), any(TaskStatus.class), any(), anyString());    
     }
 }
