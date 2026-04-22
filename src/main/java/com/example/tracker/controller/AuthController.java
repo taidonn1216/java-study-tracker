@@ -1,7 +1,13 @@
 package com.example.tracker.controller;
 
+import com.example.tracker.repository.UserRepository;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
  * 認証関連画面を提供するコントローラー。
@@ -11,6 +17,15 @@ import org.springframework.web.bind.annotation.GetMapping;
  */
 @Controller
 public class AuthController {
+    
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
+
     /**
      * ログイン画面を表示する。
      * 
@@ -23,5 +38,46 @@ public class AuthController {
     public String login() {
         return "login";
     }
+    
+    /**
+     * ユーザー画面を表示する。
+     * 
+     * @return ビュー名 {@code "register"}
+     */
+    @GetMapping("/register")
+    public String registerForm() {
+        return "register";
+    }
+
+    /**
+     * ユーザー登録を処理する。
+     * 
+     * <p>ユーザー名が既に使われている場合はエラ〜メッセージを表示して登録画面に戻る。</p>
+     * 
+     * @param username フォームから送信されたユーザー名
+     * @param password フォームから送信されたパスワード (平文)
+     * @param redirectAttributes フラッシュメッセージを渡すための属性
+     * @return 登録成功時は {@code "/login"} へリダイレクト、失敗時は登録画面へリダイレクト
+     */
+    @PostMapping("/register")
+    public String register(
+            @RequestParam("username") String username,
+            @RequestParam("password") String password,
+            RedirectAttributes redirectAttributes) {
+        
+        // ユーザー名の重複チェック        
+        if(userRepository.findByUsername(username).isPresent()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "そのユーザー名はすでに使われています。");
+            return "redirect:/register";
+        }    
+        
+        //パスワードをハッシュ化して登録する
+        String hashedPassword = passwordEncoder.encode(password);
+        userRepository.insert(username, hashedPassword);
+
+        return "redirect:/login";
+        
+    }
+    
         
 }

@@ -52,4 +52,10 @@ public class UserRepositoryImpl implements UserRepository {
         List<User> users = jdbcTemplate.query(sql,userRowMapper,username);
         return users.stream().findFirst();
     }
+    
+    /**{@inheritDoc} */
+    public void insert(String username, String password) {
+        String sql = "INSERT INTO USERS (username, password) VALUES (?, ?)";
+        jdbcTemplate.update(sql, username, password);
+    }
  }

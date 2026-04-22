@@ -23,4 +23,12 @@ public interface UserRepository {
      */
     Optional<User> findByUsername(String username);
     
+    /**
+     * ユーザーを新規に登録する。
+     * 
+     * @param username ユーザー名
+     * @param password ハッシュ化済みパスワード
+     */
+    void insert(String username, String password);
+    
 }
