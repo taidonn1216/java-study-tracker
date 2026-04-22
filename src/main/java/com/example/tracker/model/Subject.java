@@ -10,7 +10,9 @@ package com.example.tracker.model;
  * <pre>
  * CREATE TABLE SUBJECT (
  *     id   BIGINT AUTO_INCREMENT PRIMARY KEY,
- *     name VARCHAR(255) NOT NULL
+ *     name VARCHAR(255) NOT NULL,
+ *     user_id BIGINT NOT NULL,
+ *     FOREIGN KEY (user_id) REFERENCES USERS (id) ON DELETE CASCADE
  * );
  * </pre>
  *

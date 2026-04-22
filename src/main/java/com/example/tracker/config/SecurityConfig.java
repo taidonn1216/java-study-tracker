@@ -14,7 +14,7 @@ import org.springframework.security.web.SecurityFilterChain;
  * <p>ログイン・ログアウトの設定、アクセス制御、
  * パスワードエンコーダー、認証プロバイダーの定義を行う。</p>
  * 
- * @author tracer-team
+ * @author tracker-team
  * @version 1.0
  * @since 1.0
  */
@@ -64,7 +64,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-     /**
+    /**
      * BCrypt パスワードエンコーダーを Bean として登録する。
      * 
      * @return {@link PasswordEncoder} インスタンス
@@ -77,8 +77,8 @@ public class SecurityConfig {
     /**
      * 認証プロバイダーの設定。
      * 
-     * <p>{@link CustomUserDetailsService} と {@link BCryptPasswordEncoder} を
-     * 使用してユーザー認証を行う。
+     * <p> {@link CustomUserDetailsService} と {@link PasswordEncoder} を
+     * 使用してユーザー認証を行う。 </p>
      * 
      * @return {@link DaoAuthenticationProvider}
      */

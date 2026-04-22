@@ -61,8 +61,12 @@ public class SubjectRepositoryImpl implements SubjectRepository {
      *        COUNT(t.id) as total_tasks,
      *        SUM(CASE WHEN t.completed = TRUE THEN 1 ELSE 0 END) as completed_tasks
      * FROM SUBJECT s LEFT JOIN TASK t ON s.id = t.subject_id
+     * WHERE s.user_id = ?
      * GROUP BY s.id, s.name ORDER BY s.id
      * </pre>
+     * 
+     * <p>{@code completed} カラムは {@link com.example.tracker.model.TaskStatus#DONE} のとき
+     * {@code TRUE} がセットされる。集計はこのカラムを基準に行う。 </p>
      */
     @Override
     public List<SubjectSummary> findAllWithTaskStatsByUserId(Long userId) {

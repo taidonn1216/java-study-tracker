@@ -9,9 +9,10 @@ package com.example.tracker.model;
  * <h3>対応テーブル</h3>
  * <pre>
  * CREATE TABLE USERS (
- *     id       BIGINT AUTO_INCREMENT PRIMARY KEY,
- *     username VARCHAR(255) NOT NULL,
- *.    password VARCHAR(255) NOT NULL
+ *     id BIGINT AUTO_INCREMENT PRIMARY KEY,
+ *     username VARCHAR(255) NOT NULL UNIQUE,
+ *     password VARCHAR(255) NOT NULL,
+ *     enabled BOOLEAN NOT NULL DEFAULT TRUE
  * );
  * </pre>
  * 
@@ -25,7 +26,7 @@ public class User {
     /** ユーザーID（主キー、自動採番） */
     private Long id;
    
-    /**　ユーザー名 */
+    /** ユーザー名 */
     private String username;
    
     /** ハッシュ化されたユーザーパスワード */
@@ -34,7 +35,7 @@ public class User {
     /**
      * ユーザーIDを返す
      * 
-     * @return　ユーザーID
+     * @return ユーザーID
      */
     public Long getId() {
         return id;
@@ -43,7 +44,7 @@ public class User {
     /**
      * ユーザーIDを設定する
      * 
-     * @param ユーザーID
+     * @param id ユーザーID
      */
     public void setId(Long id) {
         this.id = id;
@@ -61,7 +62,7 @@ public class User {
     /**
      * ユーザー名を設定する
      * 
-     * @param ユーザー名
+     * @param username ユーザー名
      */
     public void setUsername(String username) {
         this.username = username;
@@ -70,7 +71,7 @@ public class User {
     /**
      * パスワードを返す
      * 
-     * @return
+     * @return BCryptハッシュ化されたパスワード
      */
     public String getPassword() {
         return password;
@@ -79,7 +80,7 @@ public class User {
     /**
      * パスワードを設定する
      * 
-     * @param
+     * @param password BCryptハッシュ化されたパスワード
      */
     public void setPassword(String password) {
         this.password = password;

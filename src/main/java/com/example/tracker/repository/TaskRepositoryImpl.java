@@ -181,7 +181,8 @@ public class TaskRepositoryImpl implements TaskRepository {
             """;
         return jdbcTemplate.query(sql, taskRowMapper, userId, today);
     }
-
+    
+    /** {@inheritDoc} */
     @Override
     public boolean existsByIdAndSubjectIdAndUserId(Long taskId, Long subjectId, Long userId) {
         String sql = """

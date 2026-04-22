@@ -19,7 +19,7 @@ public interface UserRepository {
      * ユーザー名でユーザーを検索する。
      * 
      * @param username 検索するユーザー名
-     * @return 該当するユーザー　(存在しない場合はからの　{@link Optional})
+     * @return 該当するユーザー (存在しない場合は空の {@link Optional})
      */
     Optional<User> findByUsername(String username);
     

@@ -41,7 +41,7 @@ public class Task {
     /** 完了フラグ（{@code true}: 完了、{@code false}: 未完了） */
     private boolean completed;
 
-    /**　タスクのステータス(未着手、進行中、完了) */
+    /** タスクのステータス(未着手、進行中、完了) */
     private TaskStatus status;
 
     /** タスクの期限日 */
@@ -61,13 +61,13 @@ public class Task {
     /**
      * 全フィールド指定コンストラクタ。
      *
-     * @param id        　タスクID
-     * @param subjectId 　所属する科目のID
-     * @param title     　タスクのタイトル
-     * @param completed 　完了フラグ
-     * @param status      ステータス
-     * @param deadline    期限日
-     * @param reflection  振り返り
+     * @param id タスクID
+     * @param subjectId 所属する科目のID
+     * @param title タスクのタイトル
+     * @param completed 完了フラグ
+     * @param status ステータス
+     * @param deadline 期限日
+     * @param reflection 振り返り
      */
     public Task(Long id, Long subjectId, String title, boolean completed, TaskStatus status, LocalDate deadline, String reflection) {
         this.id = id;
@@ -172,7 +172,7 @@ public class Task {
     /**
      * ステータスを返す。
      * 
-     * @return ステータス {未着手、進行中、完了いずれかを返す}
+     * @return ステータス (未着手・進行中・完了)いずれか
      */
     public TaskStatus getStatus() {
         return status;
@@ -181,7 +181,7 @@ public class Task {
     /**
      * ステータスの設定を受け取る
      * 
-     * @param status 未着手、進行中、完了いずれかを受け取りstatusに代入する。
+     * @param status 設定するステータス
      */
     public void setStatus(TaskStatus status) {
         this.status = status;
@@ -190,7 +190,7 @@ public class Task {
     /**
      * 期限日を返す。
      * 
-     * @return 期限日 {年・月・日を返す}
+     * @return 期限日 (設定されていない場合は {@code null})
      */
     public LocalDate getDeadline() {
         return deadline;
@@ -199,7 +199,7 @@ public class Task {
     /**
      * 期限の設定を受け取る。
      * 
-     * @param deadline 年・月・日を受け取りdeadlineに代入する。
+     * @param deadline 設定する期限日
      */
     public void setDeadline(LocalDate deadline) {
         this.deadline = deadline;
@@ -208,7 +208,7 @@ public class Task {
     /**
      * 完了時の学び・振り返りを返す。
      * 
-     * @return　書いてくれたもの {文字}
+     * @return 学び・振り返り
      */
     public String getReflection() {
         return reflection;
@@ -217,7 +217,7 @@ public class Task {
     /**
      * 完了時の学び・振り返りの設定を受け取る。
      * 
-     * @param reflection 書いてくれたものをreflectionに代入する。
+     * @param reflection 設定する学び・振り返り
      */
     public void setReflection(String reflection) {
         this.reflection = reflection;

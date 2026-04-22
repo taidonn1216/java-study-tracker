@@ -33,8 +33,8 @@ import java.util.Comparator;
  *   <tr><td>POST</td><td>/subjects/{subjectId}/tasks</td><td>タスク登録</td></tr>
  *   <tr><td>POST</td><td>/tasks/{taskId}/complete</td><td>タスク完了切替</td></tr>
  *   <tr><td>POST</td><td>/tasks/{taskId}/delete</td><td>タスク削除</td></tr>
- *   <tr><tb>POST</tb><tb>/tasks/{taskId}/status</tb><tb>ステータス更新</tb></tr> 
- *   <tr><td>POST</tb><tb>/tasks/{taskId}/reflection</tb><tb>振り返り更新</tb></tr>
+ *   <tr><td>POST</td><td>/tasks/{taskId}/status</td><td>ステータス更新</td></tr> 
+ *   <tr><td>POST</td><td>/tasks/{taskId}/reflection</td><td>振り返り更新</td></tr>
  * </table>
  *
  * @author tracker-team
@@ -65,7 +65,7 @@ public class TrackerController {
      * {@code overdueTasks} 属性としてモデルに追加する。</p>
      *
      * @param model ビューにデータを渡すSpring MVC Model
-     * @param userDetails　ログイン中のユーザー情報
+     * @param userDetails ログイン中のユーザー情報
      * @return ビュー名 {@code "index"}
      */
     @GetMapping("/")
@@ -102,6 +102,7 @@ public class TrackerController {
      * <p>{@code ON DELETE CASCADE} により、紐づくタスクも全て削除される。</p>
      *
      * @param id 削除対象の科目ID
+     * @param userDetails ログイン中のユーザー情報
      * @return {@code "/"} へのリダイレクト
      */
     @PostMapping("/subjects/{id}/delete")
@@ -219,7 +220,7 @@ public class TrackerController {
      * @param status     フォームから送信されたステータス
      * @param deadline   フォームから送信された期限
      * @param reflection フォームから送信された振り返り内容
-     * @param redirectAttributes　リダイレクト先へフラッシュメッセージを渡すための属性
+     * @param redirectAttributes リダイレクト先へフラッシュメッセージを渡すための属性
      * @param userDetails ログイン中のユーザー情報     
      * @return {@code "/subjects/{subjectId}"} へのリダイレクト
      */
@@ -313,6 +314,7 @@ public class TrackerController {
      * @param taskId     更新対象のタスクID
      * @param subjectId  リダイレクト先の科目ID
      * @param reflection フォームから送信された新しい振り返り内容
+     * @param userDetails ログイン中のユーザー情報
      * @return {@code "/subjects/{subjectId}"} へのリダイレクト
      */
     @PostMapping("/tasks/{taskId}/reflection")

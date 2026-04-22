@@ -20,7 +20,15 @@ public class AuthController {
     
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-
+    
+    /**
+     * 認証関連コントローラーを生成する。
+     * 
+     * <p>ユーザー登録処理に必要なリポジトリとパスワードエンコーダーを受け取る。 </p>
+     * 
+     * @param userRepository ユーザー情報の参照・登録を行うリポジトリ
+     * @param passwordEncoder パスワードをハッシュ化するエンコーダー
+     */
     public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -29,7 +37,7 @@ public class AuthController {
     /**
      * ログイン画面を表示する。
      * 
-     * <p>HTTP GET {@code /login} を受け取り、Thymeleefテンプレート
+     * <p>HTTP GET {@code /login} を受け取り、Thymeleafテンプレート
      * {@code login.html} を返す。</p> 
      * 
      * @return ビュー名
@@ -40,7 +48,7 @@ public class AuthController {
     }
     
     /**
-     * ユーザー画面を表示する。
+     * ユーザー登録画面を表示する。
      * 
      * @return ビュー名 {@code "register"}
      */
@@ -52,7 +60,7 @@ public class AuthController {
     /**
      * ユーザー登録を処理する。
      * 
-     * <p>ユーザー名が既に使われている場合はエラ〜メッセージを表示して登録画面に戻る。</p>
+     * <p>ユーザー名が既に使われている場合はエラーメッセージを表示して登録画面に戻る。</p>
      * 
      * @param username フォームから送信されたユーザー名
      * @param password フォームから送信されたパスワード (平文)

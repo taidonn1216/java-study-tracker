@@ -61,8 +61,8 @@ public class TrackerService {
     /**
      * ログインユーザーの科目サマリー一覧を取得する。
      * 
-     * @param username
-     * @return
+     * @param username ログインユーザー名
+     * @return ログインユーザーに紐づく科目サマリー一覧
      */
     public List<SubjectSummary> getSubjectSummariesForCurrentUser(String username) {
         Long userId = currentUserId(username);
@@ -72,9 +72,9 @@ public class TrackerService {
     /**
      * ログインユーザーの期限切れのタスクを取得する。
      * 
-     * @param username
-     * @param today
-     * @return
+     * @param username ログインユーザー名
+     * @param today 今日の日付
+     * @return 期限切れタスク一覧
      */
     public List<Task> getOverdueTasksForCurrentUser(String username, LocalDate today) {
         Long userId = currentUserId(username);
@@ -85,11 +85,11 @@ public class TrackerService {
      * 指定科目をログインユーザー条件で取得する
      * 
      * <p>対象の科目が存在しない場合、またはログインユーザーの所有でない場合は
-     * 空の {＠link Optional} を返す。</p>
+     * 空の {@link Optional} を返す。</p>
      * 
      * @param subjectId 科目ID
      * @param username ログインユーザー名
-     * @return　条件に一致する科目。 存在しない場合は空
+     * @return 条件に一致する科目。 存在しない場合は空
      */
     public Optional<Subject> getSubjectForCurrentUser(Long subjectId, String username) {
         Long userId = currentUserId(username);
@@ -133,7 +133,7 @@ public class TrackerService {
     }
     
     /**
-     * 指定した科目に紐ずくタスク一覧を取得する。
+     * 指定した科目に紐づくタスク一覧を取得する。
      * 
      * @param subjectId 科目ID
      * @param userId ユーザーID
@@ -225,7 +225,7 @@ public class TrackerService {
     public void updateReflectionForCurrentUser(Long taskId, String reflection, Long userId) {
         int updated = taskRepository.updateReflectionByIdAndUserId(taskId, reflection, userId);
         if (updated == 0) {
-            throw new RuntimeException("Task not foud or forbidden");
+            throw new RuntimeException("Task not found or forbidden");
         }
     }
 

@@ -11,7 +11,7 @@ import java.util.Optional;
 /**
  * {@link UserRepository} のJDBC実装クラス。
  * 
- * <p>Spring {@link JdbcTemplate} を使用して　{@code USERS}　テーブルに対する操作を実行する。
+ * <p>Spring {@link JdbcTemplate} を使用して {@code USERS} テーブルに対する操作を実行する。
  * {@code @Repository} としてSpring DIコンテナに登録される</p>
  * 
  * @author tracker-team
@@ -53,7 +53,8 @@ public class UserRepositoryImpl implements UserRepository {
         return users.stream().findFirst();
     }
     
-    /**{@inheritDoc} */
+    /** {@inheritDoc} */
+    @Override
     public void insert(String username, String password) {
         String sql = "INSERT INTO USERS (username, password) VALUES (?, ?)";
         jdbcTemplate.update(sql, username, password);

@@ -34,6 +34,7 @@ public interface SubjectRepository {
      * GROUP BY で集計した結果を {@link SubjectSummary} として返す。
      * タスクが存在しない科目も totalTasks=0, completedTasks=0 で返される。</p>
      *
+     * @param userId 絞り込むユーザーID
      * @return 科目ID昇順の {@link SubjectSummary} リスト
      */
     List<SubjectSummary> findAllWithTaskStatsByUserId(Long userId);
@@ -42,8 +43,8 @@ public interface SubjectRepository {
      * 指定したIDの科目を検索する。
      *
      * @param id 検索対象の科目ID
-     * @return 科目が見つかった場合はその {@link Optional}、
-     *         見つからない場合は {@link Optional#empty()}
+     * @param userId ログインユーザーID
+     * @return 科目が見つかった場合はその {@link Optional}、見つからない場合は {@link Optional#empty()}
      */
     Optional<Subject> findByIdAndUserId(Long id, Long userId);
 
@@ -53,6 +54,7 @@ public interface SubjectRepository {
      * <p>IDはデータベースにより自動採番される。</p>
      *
      * @param name 科目名（NULL不可）
+     * @param userId 所有ユーザーID
      */
     void insert(String name, Long userId);
 
@@ -63,6 +65,7 @@ public interface SubjectRepository {
      * 紐づくタスクも自動的に削除される。</p>
      *
      * @param id 削除対象の科目ID
+     * @param userId ログインユーザーID
      */
     int deleteByIdAndUserId(Long id, Long userId);
 }
