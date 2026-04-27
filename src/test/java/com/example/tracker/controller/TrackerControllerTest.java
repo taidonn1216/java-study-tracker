@@ -147,6 +147,18 @@ class TrackerControllerTest {
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/"));
     }
+
+    @Test
+    @WithMockUser(username = "testuser")
+    void testSubjectDetails_OtherUserSubject() throws Exception {
+        when(trackerService.currentUserId("testuser")).thenReturn(1L);
+        when(trackerService.getSubjectForCurrentUser(99L, 1L))
+            .thenThrow(new RuntimeException("Subject not found or forbidden"));
+
+        mockMvc.perform(get("/subjects/99"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/"));    
+    }
     
     @Test
     @WithMockUser(username = "testuser")
@@ -237,5 +249,23 @@ class TrackerControllerTest {
             .andExpect(flash().attribute("errorMessage", "期限日の形式が不正です。"));
 
         verify(trackerService, never()).createTask(anyLong(), anyLong(), anyString(), any(TaskStatus.class), any(), anyString());    
+    }
+
+    @Test
+    @WithMockUser(username = "testuser")
+    void testCreateTask_OtherUsersSubject() throws Exception {
+        when(trackerService.currentUserId("testuser")). thenReturn(1L);
+        when(trackerService.getSubjectForCurrentUser(99L, 1L))
+            .thenThrow(new RuntimeException("Subject not found or forbidden"));
+
+        mockMvc.perform(post("/subjects/99/tasks")
+                .param("title", "不正タスク")
+                .param("status", "未着手")
+                .param("deadline", "2026-03-01")
+                .param("reflection", ""))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/"));
+            
+        verify(trackerService, never()).createTask(anyLong(), anyLong(), anyString(), any(), any(), anyString());
     }
 }

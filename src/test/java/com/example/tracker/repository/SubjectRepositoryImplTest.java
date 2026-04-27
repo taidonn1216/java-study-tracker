@@ -95,6 +95,26 @@ class SubjectRepositoryImplTest {
         Optional<Subject> subject = subjectRepository.findByIdAndUserId(999L, userId);
         assertFalse(subject.isPresent());
     }
+
+    @Test
+    void testFindByidAndUserId_OtherUser() {
+        //別ユーザーを作成
+        jdbcTemplate.update(
+            "INSERT INTO USERS (username, password, enabled) VALUES (?, ?, ?)",
+            "otheruser", "password", true
+        );
+        Long otherUserId = jdbcTemplate.queryForObject(
+            "SELECT id FROM USERS WHERE username = ?", Long.class, "otheruser"
+        );
+
+        //別ユーザーの科目を作成
+        subjectRepository.insert("他人の科目", otherUserId);
+        Long otherSubjectId = subjectRepository.findAll().get(0).getId();
+
+        // 自分のuserIdでは取得できない
+        Optional<Subject> result = subjectRepository.findByIdAndUserId(otherSubjectId, userId);
+        assertFalse(result.isPresent());
+    }
     
     @Test
     void testDeleteById() {
@@ -110,6 +130,26 @@ class SubjectRepositoryImplTest {
         subjects = subjectRepository.findAll();
         assertEquals(1, subjects.size());
         assertEquals("英語", subjects.get(0).getName());
+    }
+
+    @Test
+    void testDeleteByIdAndUser_OtherUser() {
+        //別ユーザーを作成
+        jdbcTemplate.update(
+            "INSERT INTO USERS (username, password, enabled) VALUES(?, ?, ?)",
+            "otheruser", "password", true
+        );
+        Long otherUserId = jdbcTemplate.queryForObject(
+            "SELECT id FROM USERS WHERE username = ?", Long.class, "otheruser"
+        );
+
+        //別ユーザーの科目を作成
+        subjectRepository.insert("他人の科目", otherUserId);
+        Long otherSubjectId = subjectRepository.findAll().get(0).getId();
+
+        //自分のuserIdでは削除できない (0件)
+        int deleted = subjectRepository.deleteByIdAndUserId(otherSubjectId, userId);
+        assertEquals(0, deleted);
     }
     
     @Test

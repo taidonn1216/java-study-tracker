@@ -60,6 +60,20 @@ class TaskRepositoryImplTest {
         subjectRepository.insert("数学", userId);
         subjectId = subjectRepository.findAll().get(0).getId();
     }
+
+    private Long createOtherUserSubject() {
+        jdbcTemplate.update(
+            "INSERT INTO USERS (username, password, enabled) VALUES (?, ?, ?)",
+            "otheruser", "password", true
+        );
+        Long otherUserId = jdbcTemplate.queryForObject(
+            "SELECT id FROM USERS WHERE username = ?", Long.class, "otheruser"
+        );
+        subjectRepository.insert("他人の科目", otherUserId);
+        return jdbcTemplate.queryForObject(
+            "SELECT id FROM SUBJECT WHERE user_id = ?", Long.class, otherUserId
+        );
+    }
     
     @Test
     void testInsert() {
@@ -185,4 +199,27 @@ class TaskRepositoryImplTest {
         assertEquals(TaskStatus.DONE, task.getStatus());
         assertTrue(task.isCompleted());
     }
-}
+
+    @Test
+    void testUpdateStatusByIdAndUserId_OtherUser() {
+        Long otherSubjectId = createOtherUserSubject();
+        taskRepository.insert(otherSubjectId, "他人のタスク", TaskStatus.NOT_STARTED, LocalDate.parse("2026-03-01"), "");
+        Long otherTaskId = jdbcTemplate.queryForObject(
+            "SELECT id FROM TASK WHERE subject_id = ?", Long.class, otherSubjectId
+        );
+
+        //自分のuserIdでは更新できない (0件)
+        int updated = taskRepository.updateStatusByIdAndUserId(otherTaskId, TaskStatus.DONE, true, userId);
+        assertEquals(0, updated);
+    }
+
+    @Test
+    void testFindBySubjectIdAndStatusAndUserId_otherUser() {
+        Long otherSubjectId = createOtherUserSubject();
+        taskRepository.insert(otherSubjectId, "他人のタスク", TaskStatus.NOT_STARTED, LocalDate.parse("2026-03-01"), "");
+    
+    //自分のuserIdでは取得できない
+    List<Task> tasks = taskRepository.findBySubjectIdAndUserId(otherSubjectId, userId);
+    assertTrue(tasks.isEmpty());
+    }
+}   
