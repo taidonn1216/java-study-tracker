@@ -111,7 +111,7 @@ public class TaskRepositoryImpl implements TaskRepository {
                     SELECT 1
                     FROM SUBJECT s
                     WHERE s.id = t.subject_id
-                    AND s.user_id = ?
+                      AND s.user_id = ?
                 )
             """;
         return jdbcTemplate.update(sql, taskId,userId);

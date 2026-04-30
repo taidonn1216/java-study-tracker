@@ -206,6 +206,21 @@ class TrackerControllerTest {
 
     @Test
     @WithMockUser(username = "testuser")
+    void testUpdateTaskStatus_otherUserTask() throws Exception {
+        when(trackerService.currentUserId("testuser")).thenReturn(1L);
+        doThrow(new RuntimeException("forbidden"))
+            .when(trackerService)
+            .updateTaskStatusForCurrentUser(eq(99L), anyLong(), eq(1L), any());
+
+        mockMvc.perform(post("/tasks/99/status")
+                .param("subjectId", "2")
+                .param("status", "完了"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/"));    
+    }
+
+    @Test
+    @WithMockUser(username = "testuser")
     void testDeleteTask() throws Exception {
         when(trackerService.currentUserId("testuser")).thenReturn(1L);
         
@@ -215,6 +230,20 @@ class TrackerControllerTest {
             .andExpect(redirectedUrl("/subjects/2"));
         
         verify(trackerService, times(1)).deleteTaskForCurrentUser(1L, 1L);
+    }
+
+    @Test
+    @WithMockUser(username = "testuser")
+    void testDeleteTask_OtherUserTask() throws Exception {
+        when(trackerService.currentUserId("testuser")).thenReturn(1L);
+        doThrow(new RuntimeException("forbidden"))
+            .when(trackerService)
+            .deleteTaskForCurrentUser(eq(99L), eq(1L));
+        
+        mockMvc.perform(post("/tasks/99/delete")
+                .param("subjectId", "2"))
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/"));    
     }
 
     @Test

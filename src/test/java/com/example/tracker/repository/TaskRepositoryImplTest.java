@@ -143,6 +143,19 @@ class TaskRepositoryImplTest {
         assertEquals(1, tasks.size());
         assertEquals("タスク2", tasks.get(0).getTitle());
     }
+
+    @Test 
+    void testDeleteByIdAndUser_OtherUser() {
+        Long otherSubjectId = createOtherUserSubject();
+        taskRepository.insert(otherSubjectId, "他人のタスク", TaskStatus.NOT_STARTED, LocalDate.parse("2026-03-01"), "");
+        Long otheTaskId = jdbcTemplate.queryForObject(
+            "SELECT id FROM TASK WHERE subject_id = ?", Long.class, otherSubjectId
+        );
+
+        // 自分のuserIdでは削除できない (0件)
+        int deleted = taskRepository.deleteByIdAndUserId(otheTaskId, userId);
+        assertEquals(0, deleted);
+    }
     
     @Test
     void testCountBySubjectId() {

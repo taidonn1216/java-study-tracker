@@ -282,7 +282,11 @@ public class TrackerController {
             @RequestParam("subjectId") Long subjectId,
             @AuthenticationPrincipal UserDetails userDetails) {
         Long userId = trackerService.currentUserId(userDetails.getUsername());
+        try {
         trackerService.deleteTaskForCurrentUser(taskId, userId);
+        } catch (RuntimeException e) {
+            return "redirect:/";
+        }
         return "redirect:/subjects/" + subjectId;
     }
     
@@ -304,8 +308,12 @@ public class TrackerController {
             @AuthenticationPrincipal UserDetails userDetails) {
         Long userId = trackerService.currentUserId(userDetails.getUsername());
         TaskStatus parsedStatus = TaskStatus.fromValue(status);
-        trackerService.updateTaskStatusForCurrentUser(taskId, subjectId, userId, parsedStatus);
-        return "redirect:/subjects/" + subjectId;
+        try{
+            trackerService.updateTaskStatusForCurrentUser(taskId, subjectId, userId, parsedStatus);
+        } catch (RuntimeException e) {
+            return "redirect:/";
+        }
+            return "redirect:/subjects/" + subjectId;
     }
 
     /**
