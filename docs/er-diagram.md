@@ -61,7 +61,7 @@ erDiagram
 | USERS | `enabled` | NOT NULL, BOOLEAN | NULL不可、ログイン可否フラグ |
 | SUBJECT | `id` | Primary Key, Auto Increment | 主キー、自動採番 |
 | SUBJECT | `name` | NOT NULL, VARCHAR(255) | NULL不可、最大255文字 |
-| SUBJECT | `user_id` | Foreign Key → USERS(id), NOT NULL | 外部キー → USERS(id)、NULL不可 |
+| SUBJECT | `user_id` | Foreign Key → USERS(id), NOT NULL, ON DELETE CASCADE | 外部キー → USERS(id)、NULL不可、カスケード削除 |
 | TASK | `id` | Primary Key, Auto Increment | 主キー、自動採番 |
 | TASK | `subject_id` | Foreign Key → SUBJECT(id), NOT NULL, ON DELETE CASCADE | 外部キー → SUBJECT(id)、NULL不可、カスケード削除 |
 | TASK | `title` | NOT NULL, VARCHAR(255) | NULL不可、最大255文字 |
@@ -71,6 +71,7 @@ erDiagram
 | TASK | `reflection` | TEXT | 学び・振り返り(長文可) |
 
 English:
+- When a `USERS` record is deleted, all associated `SUBJECT` records are automatically deleted (`ON DELETE CASCADE`).
 - When a `SUBJECT` is deleted, all associated `TASK` records are automatically deleted (`ON DELETE CASCADE`).
 - Each `SUBJECT` belongs to one `USERS` record through `user_id`.
 - The database is initialized at startup using `schema.sql` and `data.sql` located in `src/main/resources/`.
@@ -78,6 +79,7 @@ English:
 - Only users with `enabled = true` can log in.
 
 Japanese (日本語):
+- `USERS` を削除すると、紐づく `SUBJECT` レコードもすべて自動削除されます (`ON DELETE CASCADE`) 。
 - `SUBJECT` を削除すると、紐づく `TASK` レコードもすべて自動削除されます（`ON DELETE CASCADE`）。
 - 各 `SUBJECT` は `user_id` によって1つの `USERS` レコードに属します。
 - データベースは起動時に `src/main/resources/` 配下の `schema.sql` と `data.sql` で初期化されます。
