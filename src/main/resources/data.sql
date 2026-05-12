@@ -1,7 +1,10 @@
 
-INSERT INTO USERS (username, password, enabled) VALUES('user', '$2b$10$8gl4P.2H1sEOH0mU8moubOHvLxrfqr6AKtJ326H3CbgJ2dikD9/ma', TRUE);
-INSERT INTO USERS (username, password, enabled) VALUES('user2', '$2b$10$8gl4P.2H1sEOH0mU8moubOHvLxrfqr6AKtJ326H3CbgJ2dikD9/ma', TRUE);
+-- 既存ユーザー (GENERAL)
+INSERT INTO USERS (username, password, enabled, role) VALUES('user', '$2b$10$8gl4P.2H1sEOH0mU8moubOHvLxrfqr6AKtJ326H3CbgJ2dikD9/ma', TRUE, 'GENERAL');
+INSERT INTO USERS (username, password, enabled, role) VALUES('user2', '$2b$10$8gl4P.2H1sEOH0mU8moubOHvLxrfqr6AKtJ326H3CbgJ2dikD9/ma', TRUE, 'GENERAL');
 
+-- 管理者ユーザー (ADMIN)
+INSERT INTO USERS (username, password, enabled, role) VALUES('admin','$2y$10$bn2HkNx8BZpYrbc9nhm05e0VMKjHBDixsCwxwcTN3UdCmTMU2L6tm', TRUE, 'ADMIN');
 
 -- Insert sample subjects
 INSERT INTO SUBJECT (name, user_id) VALUES ('Java',1);

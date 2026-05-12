@@ -33,6 +33,7 @@ public class UserRepositoryImpl implements UserRepository {
         user.setId(rs.getLong("id"));
         user.setUsername(rs.getString("username"));
         user.setPassword(rs.getString("password"));
+        user.setRole(rs.getString("role"));
         return user;
     };
 
@@ -48,7 +49,7 @@ public class UserRepositoryImpl implements UserRepository {
      /** {@inheritDoc} */
     @Override
     public Optional<User> findByUsername(String username) {
-        String sql = "SELECT id, username, password FROM USERS WHERE username = ?";
+        String sql = "SELECT id, username, password, role FROM USERS WHERE username = ?";
         List<User> users = jdbcTemplate.query(sql,userRowMapper,username);
         return users.stream().findFirst();
     }

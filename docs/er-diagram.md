@@ -21,6 +21,7 @@ erDiagram
         VARCHAR username "NOT NULL, UNIQUE, ユーザー名 (最大255文字)"
         VARCHAR password "NOT NULL, BCrypt暗号化済みパスワード (最大255文字)"
         BOOLEAN enabled "NOT NULL, ログイン可否フラグ"
+        VARCHAR role "NOT NULL, DEFAULT 'GENERAL', ロール (GENERAL/ADMIN)"
     }
 
     SUBJECT {
@@ -59,6 +60,7 @@ erDiagram
 | USERS | `username` | NOT NULL, UNIQUE, VARCHAR(255) | NULL不可、一意、最大255文字 |
 | USERS | `password` | NOT NULL, VARCHAR(255) | NULL不可、BCrypt暗号化済み |
 | USERS | `enabled` | NOT NULL, BOOLEAN | NULL不可、ログイン可否フラグ |
+| USERS | `role` | NOT NULL, VARCHAR(20), DEFAULT 'GENERAL' | NULL不可、 ロール (GENERAL / ADMIN) |
 | SUBJECT | `id` | Primary Key, Auto Increment | 主キー、自動採番 |
 | SUBJECT | `name` | NOT NULL, VARCHAR(255) | NULL不可、最大255文字 |
 | SUBJECT | `user_id` | Foreign Key → USERS(id), NOT NULL, ON DELETE CASCADE | 外部キー → USERS(id)、NULL不可、カスケード削除 |

@@ -89,11 +89,12 @@ java-tracker/
     │   │   │   ├── TaskRepository.java              ...   タスクリポジトリ（インターフェース）
     │   │   │   └── TaskRepositoryImpl.java          ...   タスクリポジトリ（実装）
     │   │   │
-    │   │   ├── service/                             ... 🔧 サービス層（ビジネスロジック）
+    │   │   ├── service/                             ... 🔧 サービス層（ビジネスロジック）                 
     │   │   │   ├── TrackerService.java              ...   所有者チェック・業務ロジック
     │   │   │   └── CustomUserDetailsService.java    ...   Spring Security用ユーザー取得
     │   │   │
     │   │   └── controller/                          ... 🎮 コントローラー層（画面からのリクエストを処理）
+    |   |       ├── AdminController.java             ...   管理者画面の制御
     │   │       ├── AuthController.java              ...   ログイン・ユーザー登録画面の制御
     │   │       └── TrackerController.java           ...   科目・タスク操作のエンドポイント
     │   │
@@ -102,24 +103,27 @@ java-tracker/
     │       ├── schema.sql                           ... テーブル定義SQL（起動時に自動実行）
     │       ├── data.sql                             ... サンプルデータ投入SQL（起動時に自動実行）
     │       └── templates/                           ... 🖥️ HTMLテンプレート（Thymeleaf）
+    |           ├── admin/
+    |           |   └── index.html                   ...   管理者画面
     │           ├── index.html                       ...   科目一覧ページ
     │           ├── subject_details.html             ...   科目詳細（タスク一覧）ページ
     │           ├── login.html                       ...   ログイン画面
     │           └── register.html                    ...   ユーザー登録画面
     │
-    └── test/                                        ... テストコード
+    └── test/                                              ... 💯 テストコード
         └── java/com/example/tracker/
-            ├── SecurityTest.java                    ...   未認証アクセスのテスト
-            ├── TrackerApplicationTests.java
+            ├── EducationManagementApplicationTest.java    ...   アプリ起動確認テスト
+            ├── SecurityTest.java                          ...   未認証アクセスのテスト
+            ├── TrackerApplicationTests.java               ...   Spring Boot 起動テスト
             ├── controller/
-            │   └── TrackerControllerTest.java       ...   コントローラーのテスト
+            │   └── TrackerControllerTest.java             ...   コントローラーのテスト
             ├── model/
-            │   ├── SubjectTest.java
-            │   ├── SubjectSummaryTest.java
-            │   └── TaskTest.java
+            │   ├── SubjectTest.java                       ...   科目モデルのテスト
+            │   ├── SubjectSummaryTest.java                ...   科目進捗統計モデルのテスト
+            │   └── TaskTest.java                          ...   タスクモデルのテスト
             └── repository/
-                ├── SubjectRepositoryImplTest.java
-                └── TaskRepositoryImplTest.java
+                ├── SubjectRepositoryImplTest.java         ...   科目リポジトリのテスト
+                └── TaskRepositoryImplTest.java            ...   タスクリポジトリのテスト
 ```
 
 ---
@@ -250,6 +254,7 @@ erDiagram
         VARCHAR username 
         VARCHAR password 
         BOOLEAN enabled 
+        VARCHAR role
     }
 
     SUBJECT {
@@ -295,7 +300,17 @@ erDiagram
 | `/login` | 不要 | ログインページ |
 | `/register` | 不要 | ユーザー登録 |
 | `/css/**` | 不要 | 静的リソース |
+| `/admin/**` | **ADMIN ロール必須**　| 一般ユーザーは 403 | 
 | それ以外全て | **必須** | 未認証は `/login` にリダイレクト |
+
+### ロール設計
+
+| ロール | 説明 | アクセス可能ページ |
+|---|---|---|
+| `GENERAL` | 一般ユーザー | `/` 以下 (自分のデータのみ) |
+| `ADMIN` | 管理者 | `admin/**` (全ユーザー管理) |
+
+ログイン成功後、`ADMIN` は `/admin` へ、 `GENERAL` は `/` へ自動リダイレクトされます。
 
 ### 2段階セキュリティチェック
 

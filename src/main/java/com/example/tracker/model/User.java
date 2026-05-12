@@ -13,6 +13,7 @@ package com.example.tracker.model;
  *     username VARCHAR(255) NOT NULL UNIQUE,
  *     password VARCHAR(255) NOT NULL,
  *     enabled BOOLEAN NOT NULL DEFAULT TRUE
+ *    role VARCHAR(20) NOT NULL DEFAULT 'GENERAL'
  * );
  * </pre>
  * 
@@ -31,6 +32,9 @@ public class User {
    
     /** ハッシュ化されたユーザーパスワード */
     private String password;
+    
+    /** ユーザーの権限区分 ("GENERAL" または "ADMIN") */
+    private String role;
     
     /**
      * ユーザーIDを返す
@@ -84,5 +88,23 @@ public class User {
      */
     public void setPassword(String password) {
         this.password = password;
+    }
+    
+    /**
+     * 権限区分を取得する
+
+     * @return 権限区分 ("GENERAL" または "ADMIN")
+     */
+    public String getRole() {
+        return role;
+    }
+    
+    /**
+     * 権限区分を設定する
+     * 
+     * @param role 権限区分 ("GENERAL" または "ADMIN")
+     */
+    public void setRole(String role) {
+        this.role = role;
     }
 }

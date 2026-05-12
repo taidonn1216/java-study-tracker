@@ -48,11 +48,19 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/login", "/register", "/css/**").permitAll()
+                .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
                 .loginPage("/login")
-                .defaultSuccessUrl("/", true)
+                .successHandler((request, response, authentication) -> {
+                    if(authentication.getAuthorities().stream()
+                            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+                        response.sendRedirect("/admin");
+                    } else {
+                        response.sendRedirect("/");
+                    }
+                })
                 .permitAll()
             )
             .logout(logout -> logout
@@ -60,7 +68,7 @@ public class SecurityConfig {
                 .permitAll()
             )    
             .authenticationProvider(authenticationProvider());
-        
+             
         return http.build();
     }
 
