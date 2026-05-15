@@ -97,9 +97,9 @@ class TrackerControllerTest {
     void testSubjectDetails() throws Exception {
         Subject subject = new Subject(1L, "数学");
         List<Task> tasks = Arrays.asList(
-            new Task(1L, 1L, "問題集1-10ページ", true,  TaskStatus.DONE,LocalDate.parse("2026-02-20"), "記入してください"),
-            new Task(2L, 1L, "問題集11-20ページ", false, TaskStatus.IN_PROGRESS,LocalDate.parse("2026-02-20"), "記入してください"),
-            new Task(3L, 1L, "テスト勉強", false, TaskStatus.NOT_STARTED,LocalDate.parse("2026-02-20"), "記入してください")
+            new Task(1L, 1L, "問題集1-10ページ", TaskStatus.DONE,LocalDate.parse("2026-02-20"), "記入してください"),
+            new Task(2L, 1L, "問題集11-20ページ", TaskStatus.IN_PROGRESS,LocalDate.parse("2026-02-20"), "記入してください"),
+            new Task(3L, 1L, "テスト勉強", TaskStatus.NOT_STARTED,LocalDate.parse("2026-02-20"), "記入してください")
         );
         when(trackerService.currentUserId("testuser")).thenReturn(1L);
         when(trackerService.getSubjectForCurrentUser(1L, 1L)).thenReturn(subject);

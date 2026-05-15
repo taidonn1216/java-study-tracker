@@ -48,7 +48,7 @@ public interface TaskRepository {
 
    
     /**
-     * 新しいタスクを未完了状態 ({@code completed = FALSE}) で登録する。
+     * 新しいタスクを登録する。
      *
      * @param subjectId タスクを追加する科目のID
      * @param title タスクのタイトル（NULL不可）
@@ -79,22 +79,11 @@ public interface TaskRepository {
      * 
      * @param taskId 更新対象のタスクID
      * @param status 新しいステータス
-     * @param completed 新しい完了状態
      * @param userId ログインユーザーID(所有者条件)
      * @return 更新件数 (0: 対象なし / 1: 更新成功)
      */
-    int updateStatusByIdAndUserId(Long taskId, TaskStatus status, boolean completed, Long userId);
+    int updateStatusByIdAndUserId(Long taskId, TaskStatus status, Long userId);
 
-    /**
-     * タスクの完了状態を、所有者条件つきで更新する。
-     * 
-     * @param taskId 更新対象のタスクID
-     * @param completed 新しい完了状態
-     * @param userId ログインユーザーID(所有者条件)
-     * @return 更新件数 (0: 対象なし / 1: 更新成功)
-     */
-    int updateCompletedByIdAndUserId(Long taskId, boolean completed, Long userId);
-    
     /**
      * 振り返り内容を、所有者条件付きで更新する。
      * 

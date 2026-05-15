@@ -13,7 +13,6 @@ import java.time.LocalDate;
  *     id BIGINT AUTO_INCREMENT PRIMARY KEY,
  *     subject_id BIGINT NOT NULL,
  *     title VARCHAR(255) NOT NULL,
- *     completed BOOLEAN NOT NULL DEFAULT FALSE,
  *     status VARCHAR(20) NOT NULL,
  *     deadline DATE,
  *     reflection TEXT,
@@ -38,9 +37,6 @@ public class Task {
     /** タスクのタイトル */
     private String title;
 
-    /** 完了フラグ（{@code true}: 完了、{@code false}: 未完了） */
-    private boolean completed;
-
     /** タスクのステータス(未着手、進行中、完了) */
     private TaskStatus status;
 
@@ -64,16 +60,14 @@ public class Task {
      * @param id タスクID
      * @param subjectId 所属する科目のID
      * @param title タスクのタイトル
-     * @param completed 完了フラグ
      * @param status ステータス
      * @param deadline 期限日
      * @param reflection 振り返り
      */
-    public Task(Long id, Long subjectId, String title, boolean completed, TaskStatus status, LocalDate deadline, String reflection) {
+    public Task(Long id, Long subjectId, String title, TaskStatus status, LocalDate deadline, String reflection) {
         this.id = id;
         this.subjectId = subjectId;
         this.title = title;
-        this.completed = completed;
         this.status = status;
         this.deadline = deadline;
         this.reflection = reflection;
@@ -134,27 +128,9 @@ public class Task {
     }
 
     /**
-     * 完了状態を返す。
-     *
-     * @return 完了している場合は {@code true}、それ以外の場合は {@code false}
-     */
-    public boolean isCompleted() {
-        return completed;
-    }
-
-    /**
-     * 完了状態を設定する。
-     *
-     * @param completed {@code true} で完了、{@code false} でそれ以外
-     */
-    public void setCompleted(boolean completed) {
-        this.completed = completed;
-    }
-
-    /**
      * このオブジェクトの文字列表現を返す。
      *
-     * @return {@code Task{id=..., subjectId=..., title='...', completed=...}} 形式の文字列
+     * @return {@code Task{id=..., subjectId=..., title='...', status='...', deadline='...', reflection='...'}} 形式の文字列
      */
     @Override
     public String toString() {
@@ -162,7 +138,6 @@ public class Task {
                 "id=" + id +
                 ", subjectId=" + subjectId +
                 ", title='" + title + '\'' +
-                ", completed=" + completed +
                 ", status='" + status +  '\'' +
                 ", deadline=" + deadline +
                 ", reflection='" + reflection + '\'' +

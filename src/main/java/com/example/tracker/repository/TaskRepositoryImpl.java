@@ -35,7 +35,6 @@ public class TaskRepositoryImpl implements TaskRepository {
         task.setId(rs.getLong("id"));
         task.setSubjectId(rs.getLong("subject_id"));
         task.setTitle(rs.getString("title"));
-        task.setCompleted(rs.getBoolean("completed"));
         task.setStatus(TaskStatus.fromValue(rs.getString("status")));
         task.setDeadline(rs.getObject("deadline", LocalDate.class));
         task.setReflection(rs.getString("reflection") !=null ? rs.getString("reflection") : "");
@@ -55,7 +54,7 @@ public class TaskRepositoryImpl implements TaskRepository {
     @Override
     public List<Task> findBySubjectIdAndUserId(Long subjectId, Long userId) {
         String sql = """
-            SELECT t.id, t.subject_id, t.title, t.completed, t.status, t.deadline, t.reflection  
+            SELECT t.id, t.subject_id, t.title, t.status, t.deadline, t.reflection  
             FROM TASK t 
             JOIN SUBJECT s ON s.id = t.subject_id
             WHERE t.subject_id = ? AND s.user_id = ?
@@ -68,7 +67,7 @@ public class TaskRepositoryImpl implements TaskRepository {
     @Override
     public List<Task> findBySubjectIdAndStatusAndUserId(Long subjectId, TaskStatus status, Long userId) {
         String sql = """
-            SELECT t.id, t.subject_id, t.title, t.completed, t.status, t.deadline, t.reflection 
+            SELECT t.id, t.subject_id, t.title, t.status, t.deadline, t.reflection 
             FROM TASK t 
             JOIN SUBJECT s ON s.id = t.subject_id
             WHERE t.subject_id = ? AND t.status = ? AND s.user_id = ?
@@ -80,25 +79,8 @@ public class TaskRepositoryImpl implements TaskRepository {
     /** {@inheritDoc} */
     @Override
     public void insert(Long subjectId, String title, TaskStatus status, LocalDate deadline, String reflection) {
-        String sql = "INSERT INTO TASK (subject_id, title, completed, status, deadline, reflection) VALUES (?, ?, FALSE, ?, ?, ?)";
+        String sql = "INSERT INTO TASK (subject_id, title, status, deadline, reflection) VALUES (?, ?, ?, ?, ?)";
         jdbcTemplate.update(sql, subjectId, title, status.name(), deadline, reflection);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public int updateCompletedByIdAndUserId(Long taskId, boolean completed, Long userId) {
-        String sql = """
-            UPDATE TASK t
-            SET completed = ?
-            WHERE t.id = ?
-              AND EXISTS (
-                  SELECT 1
-                  FROM SUBJECT s
-                  WHERE s.id = t.subject_id
-                    AND s.user_id = ?
-              )
-            """;
-        return jdbcTemplate.update(sql, completed, taskId,userId);
     }
 
     /** {@inheritDoc} */
@@ -128,17 +110,17 @@ public class TaskRepositoryImpl implements TaskRepository {
     /** {@inheritDoc} */
     @Override
     public int countCompletedBySubjectId(Long subjectId) {
-        String sql = "SELECT COUNT(*) FROM TASK WHERE subject_id = ? AND completed = TRUE";
+        String sql = "SELECT COUNT(*) FROM TASK WHERE subject_id = ? AND status = 'DONE'";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, subjectId);
         return count != null ? count : 0;
     }
 
     /** {@inheritDoc} */
     @Override
-    public int updateStatusByIdAndUserId(Long taskId, TaskStatus status, boolean completed, Long userId) {
+    public int updateStatusByIdAndUserId(Long taskId, TaskStatus status, Long userId) {
         String sql = """
             UPDATE TASK t
-            SET status = ?, completed = ?
+            SET status = ?
             WHERE t.id = ?
               AND EXISTS (
                   SELECT 1
@@ -147,7 +129,7 @@ public class TaskRepositoryImpl implements TaskRepository {
                     AND s.user_id = ? 
               )
             """;
-        return jdbcTemplate.update(sql, status.name(), completed, taskId, userId);
+        return jdbcTemplate.update(sql, status.name(), taskId, userId);
     }
 
     /** {@inheritDoc} */
@@ -171,12 +153,12 @@ public class TaskRepositoryImpl implements TaskRepository {
     @Override
     public List<Task> findOverdueTasksByUserId(Long userId, LocalDate today) {
         String sql = """
-            SELECT t.id, t.subject_id, t.title, t.completed, t.status, t.deadline, t.reflection
+            SELECT t.id, t.subject_id, t.title, t.status, t.deadline, t.reflection
             FROM TASK t  
             JOIN SUBJECT s ON s.id = t.subject_id
             WHERE s.user_id = ?
               AND t.deadline < ?
-              AND t.completed = FALSE
+              AND t.status != 'DONE'
             ORDER BY t.deadline ASC   
             """;
         return jdbcTemplate.query(sql, taskRowMapper, userId, today);

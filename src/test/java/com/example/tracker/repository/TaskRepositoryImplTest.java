@@ -83,7 +83,6 @@ class TaskRepositoryImplTest {
         assertEquals(1, tasks.size());
         assertEquals("問題集1-10ページ", tasks.get(0).getTitle());
         assertEquals(subjectId, tasks.get(0).getSubjectId());
-        assertFalse(tasks.get(0).isCompleted());
     }
     
     @Test
@@ -103,28 +102,6 @@ class TaskRepositoryImplTest {
     void testFindBySubjectId_NoTasks() {
         List<Task> tasks = taskRepository.findBySubjectIdAndUserId(subjectId, userId);
         assertTrue(tasks.isEmpty());
-    }
-    
-    @Test
-    void testUpdateCompleted() {
-        taskRepository.insert(subjectId, "問題集1-10ページ", TaskStatus.NOT_STARTED, LocalDate.parse("2026-03-01"), "");
-        Long taskId = taskRepository.findBySubjectIdAndUserId(subjectId, userId).get(0).getId();
-        
-        // 未完了の状態を確認
-        Task task = taskRepository.findBySubjectIdAndUserId(subjectId, userId).get(0);
-        assertFalse(task.isCompleted());
-        
-        // 完了に更新
-        int updated1 = taskRepository.updateCompletedByIdAndUserId(taskId, true, userId);
-        assertEquals(1, updated1);
-        task = taskRepository.findBySubjectIdAndUserId(subjectId, userId).get(0);
-        assertTrue(task.isCompleted());
-        
-        // 未完了に戻す
-        int updated2 = taskRepository.updateCompletedByIdAndUserId(taskId, false, userId);
-        assertEquals(1, updated2);
-        task = taskRepository.findBySubjectIdAndUserId(subjectId, userId).get(0);
-        assertFalse(task.isCompleted());
     }
     
     @Test
@@ -178,10 +155,10 @@ class TaskRepositoryImplTest {
         assertEquals(0, taskRepository.countCompletedBySubjectId(subjectId));
         
         List<Task> tasks = taskRepository.findBySubjectIdAndUserId(subjectId, userId);
-        taskRepository.updateCompletedByIdAndUserId(tasks.get(0).getId(), true, userId);
+        taskRepository.updateStatusByIdAndUserId(tasks.get(0).getId(), TaskStatus.DONE, userId);
         assertEquals(1, taskRepository.countCompletedBySubjectId(subjectId));
         
-        taskRepository.updateCompletedByIdAndUserId(tasks.get(1).getId(), true, userId);
+        taskRepository.updateStatusByIdAndUserId(tasks.get(1).getId(), TaskStatus.DONE, userId);
         assertEquals(2, taskRepository.countCompletedBySubjectId(subjectId));
     }
 
@@ -205,12 +182,11 @@ class TaskRepositoryImplTest {
         taskRepository.insert(subjectId, "更新対象", TaskStatus.NOT_STARTED, LocalDate.parse("2026-03-01"), "");
         Long taskId = taskRepository.findBySubjectIdAndUserId(subjectId, userId).get(0).getId();
 
-        int updated = taskRepository.updateStatusByIdAndUserId(taskId, TaskStatus.DONE, true, userId);
+        int updated = taskRepository.updateStatusByIdAndUserId(taskId, TaskStatus.DONE, userId);
         assertEquals(1, updated);
 
         Task task = taskRepository.findBySubjectIdAndUserId(subjectId, userId).get(0);
         assertEquals(TaskStatus.DONE, task.getStatus());
-        assertTrue(task.isCompleted());
     }
 
     @Test
@@ -218,12 +194,11 @@ class TaskRepositoryImplTest {
         Long otherSubjectId = createOtherUserSubject();
         taskRepository.insert(otherSubjectId, "他人のタスク", TaskStatus.NOT_STARTED, LocalDate.parse("2026-03-01"), "");
         Long otherTaskId = jdbcTemplate.queryForObject(
-            "SELECT id FROM TASK WHERE subject_id = ?", Long.class, otherSubjectId
+            "SELECT id FROM TASK WHERE subject_id = ?", Long.class, otherSubjectId  
         );
-
-        //自分のuserIdでは更新できない (0件)
-        int updated = taskRepository.updateStatusByIdAndUserId(otherTaskId, TaskStatus.DONE, true, userId);
+        int updated = taskRepository.updateStatusByIdAndUserId(otherTaskId, TaskStatus.DONE, userId);
         assertEquals(0, updated);
+    
     }
 
     @Test

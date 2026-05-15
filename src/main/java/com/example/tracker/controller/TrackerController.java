@@ -31,7 +31,6 @@ import java.util.Comparator;
  *   <tr><td>POST</td><td>/subjects/{id}/delete</td><td>科目削除</td></tr>
  *   <tr><td>GET</td><td>/subjects/{id}</td><td>科目詳細（タスク一覧）</td></tr>
  *   <tr><td>POST</td><td>/subjects/{subjectId}/tasks</td><td>タスク登録</td></tr>
- *   <tr><td>POST</td><td>/tasks/{taskId}/complete</td><td>タスク完了切替</td></tr>
  *   <tr><td>POST</td><td>/tasks/{taskId}/delete</td><td>タスク削除</td></tr>
  *   <tr><td>POST</td><td>/tasks/{taskId}/status</td><td>ステータス更新</td></tr> 
  *   <tr><td>POST</td><td>/tasks/{taskId}/reflection</td><td>振り返り更新</td></tr>
@@ -156,7 +155,7 @@ public class TrackerController {
        // 全タスク（統計用）
         List<Task> allTasks = trackerService.getTasksForSubject(id, userId);
         long totalTasks = allTasks.size();
-        long completedTasks = allTasks.stream().filter(task -> Boolean.TRUE.equals(task.isCompleted())).count();
+        long completedTasks = allTasks.stream().filter(task -> task.getStatus() == TaskStatus.DONE).count();
         long incompleteTasks = totalTasks - completedTasks;
         
        // ② 表示用タスク(絞り込み)

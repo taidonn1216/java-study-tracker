@@ -25,7 +25,6 @@ CREATE TABLE TASK (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     subject_id BIGINT NOT NULL,
     title VARCHAR(255) NOT NULL,
-    completed BOOLEAN NOT NULL DEFAULT FALSE,
     status VARCHAR(20) NOT NULL,
     deadline DATE,
     reflection TEXT,

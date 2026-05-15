@@ -181,7 +181,7 @@ class SubjectRepositoryImplTest {
             Long.class, 
             subjectId
         );
-        taskRepository.updateCompletedByIdAndUserId(taskIds.get(0), true, userId);
+        taskRepository.updateStatusByIdAndUserId(taskIds.get(0), TaskStatus.DONE, userId);
         
         List<SubjectSummary> summaries = subjectRepository.findAllWithTaskStatsByUserId(userId);
         assertEquals(1, summaries.size());

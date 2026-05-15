@@ -172,8 +172,7 @@ public class TrackerService {
             throw new RuntimeException("Task not found or forbidden");
         }
         
-        boolean completed = (status == TaskStatus.DONE);
-        int updated = taskRepository.updateStatusByIdAndUserId(taskId, status, completed, userId);
+        int updated = taskRepository.updateStatusByIdAndUserId(taskId, status, userId);
         if(updated == 0) {
             throw new RuntimeException("Task update failed");
         }
