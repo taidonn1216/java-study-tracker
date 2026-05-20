@@ -60,4 +60,25 @@ public class UserRepositoryImpl implements UserRepository {
         String sql = "INSERT INTO USERS (username, password) VALUES (?, ?)";
         jdbcTemplate.update(sql, username, password);
     }
- }
+
+    /** {@inheritDoc} */
+    @Override
+    public List<User> findAll() {
+        String sql = "SELECT id, username, password,role FROM USERS";
+        return jdbcTemplate.query(sql, userRowMapper);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void updateRole(Long id, String role) {
+        String sql = "UPDATE USERS SET role = ? WHERE id = ?";
+        jdbcTemplate.update(sql, role, id);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public User findById(Long id) {
+        String sql = "SELECT id, username, password, role FROM USERS WHERE id = ?";
+        return jdbcTemplate.queryForObject(sql, userRowMapper, id);
+    }
+}

@@ -153,7 +153,7 @@ public class TrackerService {
      */
     public List<Task> getTasksByStatus(Long subjectId, TaskStatus status, Long userId) {
          return taskRepository.findBySubjectIdAndStatusAndUserId(subjectId, status, userId);
-        }
+    }
     
     /**
      * ステータス更新 (2段階チェック付き)。

@@ -1,8 +1,42 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head><title>管理画面</title></head>
+<head><title>ユーザー管理画面</title></head>
 <body>
-    <h1>管理画面です</h1>
-    <p>管理者専用ページです。</p>
+    <h1>ユーザー管理画面</h1>
+    
+    <p th:if="${errorMessage != null}" th:text="${errorMessage}" style="color: red;"> </p>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>ユーザー名</th>
+                <th>権限</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="user : ${users}">
+                <td th:text="${user.id}"></td>
+                <td th:text="${user.username}"></td>
+                <td th:text="${user.role}"></td>
+                <td>
+                    <!-- 現在 GENERAL 場合 : ADMIN に昇格するボタン -->
+                    <form th:if="${user.role == 'GENERAL'}"
+                          th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post">
+                        <input type="hidden" name="role" value="ADMIN" />
+                        <button type="submit">ADMIN に昇格</button>
+                    </form>
+
+                    <!-- 現在 ADMIN の場合 : GENERAL に変更するボタン -->
+                     <form th:if="${user.role == 'ADMIN'}"
+                           th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post">
+                        <input type="hidden" name="role" value="GENERAL" />
+                        <button type="submit">GENERAL に変更</button>   
+                     </form>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 </body>
 </html>

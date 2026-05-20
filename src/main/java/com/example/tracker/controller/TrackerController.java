@@ -282,7 +282,7 @@ public class TrackerController {
             @AuthenticationPrincipal UserDetails userDetails) {
         Long userId = trackerService.currentUserId(userDetails.getUsername());
         try {
-        trackerService.deleteTaskForCurrentUser(taskId, userId);
+            trackerService.deleteTaskForCurrentUser(taskId, userId);
         } catch (RuntimeException e) {
             return "redirect:/";
         }

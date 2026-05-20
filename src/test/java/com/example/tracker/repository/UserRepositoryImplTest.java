@@ -1,0 +1,92 @@
+package com.example.tracker.repository;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import com.example.tracker.model.User;
+
+@JdbcTest
+@Import({UserRepositoryImpl.class})
+public class UserRepositoryImplTest {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    private Long userId;
+
+    @BeforeEach
+    void setup() {
+        jdbcTemplate.execute("DELETE FROM TASK");
+        jdbcTemplate.execute("DELETE FROM SUBJECT");
+        jdbcTemplate.execute("DELETE FROM USERS");
+        jdbcTemplate.execute("ALTER TABLE USERS ALTER COLUMN id RESTART WITH 1");
+
+        jdbcTemplate.update(
+            "INSERT INTO USERS (username, password, enabled, role) VALUES (?, ?, ?, ?)",
+            "testuser",
+            "$2b$10$8gl4P.2H1sEOH0mU8moubOHvLxrfqr6AKtJ326H3CbgJ2dikD9/ma",
+            true,
+            "GENERAL"
+        );
+
+        userId = jdbcTemplate.queryForObject(
+            "SELECT id FROM USERS WHERE username = ?",
+            Long.class,
+            "testuser"
+        );
+    }
+
+    @Test
+    void testFindByUsername_Found() {
+        Optional<User> user = userRepository.findByUsername("testuser");
+        assertTrue(user.isPresent());
+        assertEquals("testuser", user.get().getUsername());
+    }
+
+    @Test
+    void testFindByUsername_NotFound() {
+        Optional<User> user = userRepository.findByUsername("nobody");
+        assertFalse(user.isPresent());
+    }
+
+    @Test
+    void testInsert() {
+        userRepository.insert("newuser", "password");
+        Optional<User> user = userRepository.findByUsername("newuser");
+        assertTrue(user.isPresent());
+        assertEquals("newuser", user.get().getUsername());
+
+    }
+
+    @Test
+    void testFindAll() {
+        userRepository.insert("newuser", "password");
+        List<User> users = userRepository.findAll();
+        assertEquals(2, users.size());
+    }
+
+    @Test
+    void testUpdateRole() {
+        userRepository.updateRole(userId, "ADMIN");
+        User user = userRepository.findById(userId);
+        assertEquals("ADMIN", user.getRole());
+    }
+
+    @Test
+    void testFindById(){
+        User user = userRepository.findById(userId);
+        assertEquals("testuser", user.getUsername());
+    }    
+}
