@@ -12,7 +12,7 @@ package com.example.tracker.model;
  *     id BIGINT AUTO_INCREMENT PRIMARY KEY,
  *     username VARCHAR(255) NOT NULL UNIQUE,
  *     password VARCHAR(255) NOT NULL,
- *     enabled BOOLEAN NOT NULL DEFAULT TRUE
+ *     enabled BOOLEAN NOT NULL DEFAULT TRUE,
  *    role VARCHAR(20) NOT NULL DEFAULT 'GENERAL'
  * );
  * </pre>
@@ -92,7 +92,7 @@ public class User {
     
     /**
      * 権限区分を取得する
-
+     * 
      * @return 権限区分 ("GENERAL" または "ADMIN")
      */
     public String getRole() {

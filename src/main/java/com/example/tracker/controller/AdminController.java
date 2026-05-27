@@ -17,7 +17,9 @@ import com.example.tracker.repository.UserRepository;
 /**
  * 管理者向けの機能を提供するコントローラー。
  * 
- * <p>ユーザー一覧の表示やロール変更などの管理機能を扱う。</p>
+ * <p>
+ * ユーザー一覧の表示やロール変更などの管理機能を扱う。
+ * </p>
  * 
  * @author tracker-team
  * @version 1.0
@@ -51,23 +53,36 @@ public class AdminController {
         model.addAttribute("users", userRepository.findAll());
         return "admin/index";
     }
-    
+
     /**
      * 指定されたユーザーの権限を変更する。
      * ログイン中のユーザー自身の権限は変更できない (自己ロックアウト防止)
-     * @param id 権限を変更する対象のユーザーのID
-     * @param role 変更後の権限 ("ADMIN" または "GENERAL")
-     * @param authentication 現在ログイン中のユーザー情報
+     * 
+     * @param id                 権限を変更する対象のユーザーのID
+     * @param role               変更後の権限 ("ADMIN" または "GENERAL")
+     * @param authentication     現在ログイン中のユーザー情報
      * @param redirectAttributes リダイレクト先にエラーメッセージを渡すための属性
      * @return 管理画面にリダイレクト
      */
     @PostMapping("/users/{id}/role")
-    public String updateRole(@PathVariable Long id, @RequestParam String role, Authentication authentication, RedirectAttributes redirectAttributes) {
-        User targetUser = userRepository.findById(id);
+    public String updateRole(@PathVariable Long id, @RequestParam String role, Authentication authentication,
+            RedirectAttributes redirectAttributes) {
+        User targetUser;
+        try {
+            targetUser = userRepository.findById(id);
+        } catch (RuntimeException e) {
+            return "redirect:/admin";
+        }
+
         String currentUsername = authentication.getName();
 
         if (targetUser.getUsername().equals(currentUsername)) {
-            redirectAttributes.addFlashAttribute("errorMessage","自分自身の権限は変更できません。");
+            redirectAttributes.addFlashAttribute("errorMessage", "自分自身の権限は変更できません。");
+            return "redirect:/admin";
+        }
+
+        if (!role.equals("ADMIN") && !role.equals("GENERAL")) {
+            redirectAttributes.addFlashAttribute("errorMessage", "不正なロールです。");
             return "redirect:/admin";
         }
 

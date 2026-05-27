@@ -8,8 +8,10 @@ import java.util.Optional;
 /**
  * 科目（Subject）データへのアクセスを抽象化するリポジトリインターフェース。
  *
- * <p>{@code SUBJECT} テーブルにCRUD操作を提供する。
- * タスク統計付きの科目一覧取得機能も含む。</p>
+ * <p>
+ * {@code SUBJECT} テーブルにCRUD操作を提供する。
+ * タスク統計付きの科目一覧取得機能も含む。
+ * </p>
  *
  * @author tracker-team
  * @version 1.0
@@ -30,9 +32,11 @@ public interface SubjectRepository {
     /**
      * すべての科目をタスク統計（総数・完了数）付きで取得する。
      *
-     * <p>{@code SUBJECT} と {@code TASK} を LEFT JOIN し、
+     * <p>
+     * {@code SUBJECT} と {@code TASK} を LEFT JOIN し、
      * GROUP BY で集計した結果を {@link SubjectSummary} として返す。
-     * タスクが存在しない科目も totalTasks=0, completedTasks=0 で返される。</p>
+     * タスクが存在しない科目も totalTasks=0, completedTasks=0 で返される。
+     * </p>
      *
      * @param userId 絞り込むユーザーID
      * @return 科目ID昇順の {@link SubjectSummary} リスト
@@ -42,7 +46,7 @@ public interface SubjectRepository {
     /**
      * 指定したIDの科目を検索する。
      *
-     * @param id 検索対象の科目ID
+     * @param id     検索対象の科目ID
      * @param userId ログインユーザーID
      * @return 科目が見つかった場合はその {@link Optional}、見つからない場合は {@link Optional#empty()}
      */
@@ -51,9 +55,11 @@ public interface SubjectRepository {
     /**
      * 新しい科目を登録する。
      *
-     * <p>IDはデータベースにより自動採番される。</p>
+     * <p>
+     * IDはデータベースにより自動採番される。
+     * </p>
      *
-     * @param name 科目名（NULL不可）
+     * @param name   科目名（NULL不可）
      * @param userId 所有ユーザーID
      */
     void insert(String name, Long userId);
@@ -61,10 +67,12 @@ public interface SubjectRepository {
     /**
      * 指定したIDの科目を削除する。
      *
-     * <p>外部キー制約の {@code ON DELETE CASCADE} により、
-     * 紐づくタスクも自動的に削除される。</p>
+     * <p>
+     * 外部キー制約の {@code ON DELETE CASCADE} により、
+     * 紐づくタスクも自動的に削除される。
+     * </p>
      *
-     * @param id 削除対象の科目ID
+     * @param id     削除対象の科目ID
      * @param userId ログインユーザーID
      */
     int deleteByIdAndUserId(Long id, Long userId);

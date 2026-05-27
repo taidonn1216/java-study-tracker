@@ -15,7 +15,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.Comparator;
 
 /**
  * 学習進捗トラッカーのWebリクエストを処理するSpring MVCコントローラー。
@@ -51,56 +50,60 @@ public class TrackerController {
      *
      * @param trackerService トラッカーサービス
      */
-    public TrackerController( TrackerService trackerService) {
+    public TrackerController(TrackerService trackerService) {
         this.trackerService = trackerService;
     }
 
     /**
      * 科目一覧ページを表示する。
      *
-     * <p>全科目をタスク統計付きで取得し、
+     * <p>
+     * 全科目をタスク統計付きで取得し、
      * {@code subjects} 属性としてモデルに追加する。<br>
      * また、本日の日付を基準に未完了の期限切れのタスクを取得し、
-     * {@code overdueTasks} 属性としてモデルに追加する。</p>
+     * {@code overdueTasks} 属性としてモデルに追加する。
+     * </p>
      *
-     * @param model ビューにデータを渡すSpring MVC Model
+     * @param model       ビューにデータを渡すSpring MVC Model
      * @param userDetails ログイン中のユーザー情報
      * @return ビュー名 {@code "index"}
      */
     @GetMapping("/")
     public String index(Model model, @AuthenticationPrincipal UserDetails userDetails) {
         String username = userDetails.getUsername();
-        
+
         List<SubjectSummary> subjects = trackerService.getSubjectSummariesForCurrentUser(username);
         List<Task> overdueTasks = trackerService.getOverdueTasksForCurrentUser(username, LocalDate.now());
-       
+
         model.addAttribute("subjects", subjects);
         model.addAttribute("overdueTasks", overdueTasks);
         return "index";
     }
-    
+
     /**
      * 新しい科目を登録し、一覧ページへリダイレクトする。
      *
-     * @param name フォームから送信された科目名
+     * @param name        フォームから送信された科目名
      * @param userDetails ログイン中のユーザー情報
      * @return {@code "/"} へのリダイレクト
      */
     @PostMapping("/subjects")
     public String createSubject(
-            @RequestParam("name") String name, 
+            @RequestParam("name") String name,
             @AuthenticationPrincipal UserDetails userDetails) {
         Long userId = trackerService.currentUserId(userDetails.getUsername());
         trackerService.createSubjectForCurrentUser(name, userId);
         return "redirect:/";
     }
-    
+
     /**
      * 科目を削除し、一覧ページへリダイレクトする。
      *
-     * <p>{@code ON DELETE CASCADE} により、紐づくタスクも全て削除される。</p>
+     * <p>
+     * {@code ON DELETE CASCADE} により、紐づくタスクも全て削除される。
+     * </p>
      *
-     * @param id 削除対象の科目ID
+     * @param id          削除対象の科目ID
      * @param userDetails ログイン中のユーザー情報
      * @return {@code "/"} へのリダイレクト
      */
@@ -108,43 +111,47 @@ public class TrackerController {
     public String deleteSubject(
             @PathVariable("id") Long id,
             @AuthenticationPrincipal UserDetails userDetails) {
-        Long userId = trackerService.currentUserId(userDetails.getUsername());        
+        Long userId = trackerService.currentUserId(userDetails.getUsername());
         trackerService.deleteSubjectForCurrentUser(id, userId);
         return "redirect:/";
     }
-    
+
     /**
      * 科目詳細ページ（タスク一覧）を表示する。
      *
-     * <p>科目が見つからない場合は一覧ページへリダイレクトする。</p>
+     * <p>
+     * 科目が見つからない場合は一覧ページへリダイレクトする。
+     * </p>
      *
-     * <p>モデルに追加される属性:</p>
+     * <p>
+     * モデルに追加される属性:
+     * </p>
      * <ul>
-     *   <li>{@code subject} — 科目エンティティ</li>
-     *   <li>{@code tasks} — タスク一覧</li>
-     *   <li>{@code totalTasks} — タスク総数</li>
-     *   <li>{@code completedTasks} — 完了済みタスク数</li>
-     *   <li>{@code incompleteTasks} — 未完了タスク数</li>
+     * <li>{@code subject} — 科目エンティティ</li>
+     * <li>{@code tasks} — タスク一覧</li>
+     * <li>{@code totalTasks} — タスク総数</li>
+     * <li>{@code completedTasks} — 完了済みタスク数</li>
+     * <li>{@code incompleteTasks} — 未完了タスク数</li>
      * </ul>
      *
-     * @param id 科目ID
+     * @param id           科目ID
      * @param statusFilter 絞り込み条件(未着手、進行中、完了)
-     * @param sortOrder 並び替え条件(idAsc/ idDesc/ deadlineAsc/ deadlineDesc)
-     * @param model Spring MVC Model
-     * @param userDetails ログイン中のユーザー情報
+     * @param sortOrder    並び替え条件(idAsc/ idDesc/ deadlineAsc/ deadlineDesc)
+     * @param model        Spring MVC Model
+     * @param userDetails  ログイン中のユーザー情報
      * @return ビュー名 {@code "subject_details"} または {@code "/"} へのリダイレクト
      */
-     @GetMapping("/subjects/{id}")
+    @GetMapping("/subjects/{id}")
     public String subjectDetails(
             @PathVariable("id") Long id,
             @RequestParam(name = "statusFilter", required = false) String statusFilter,
-            @RequestParam(name = "sortOrder", required = false, defaultValue = "idAsc") String sortOrder, //並び替え条件
-             Model model,
+            @RequestParam(name = "sortOrder", required = false, defaultValue = "idAsc") String sortOrder, // 並び替え条件
+            Model model,
             @AuthenticationPrincipal UserDetails userDetails) {
-        
-        Long userId = trackerService.currentUserId(userDetails.getUsername()); 
-        
-        //subjectOpt → Subject を直接取得(見つからなければ　RuntimeException → リダイレクト)
+
+        Long userId = trackerService.currentUserId(userDetails.getUsername());
+
+        // subjectOpt → Subject を直接取得(見つからなければ RuntimeException → リダイレクト)
         Subject subject;
         try {
             subject = trackerService.getSubjectForCurrentUser(id, userId);
@@ -152,13 +159,13 @@ public class TrackerController {
             return "redirect:/";
         }
 
-       // 全タスク（統計用）
+        // 全タスク（統計用）
         List<Task> allTasks = trackerService.getTasksForSubject(id, userId);
         long totalTasks = allTasks.size();
         long completedTasks = allTasks.stream().filter(task -> task.getStatus() == TaskStatus.DONE).count();
         long incompleteTasks = totalTasks - completedTasks;
-        
-       // ② 表示用タスク(絞り込み)
+
+        // ② 表示用タスク(絞り込み)
         List<Task> displayTasks;
         if (statusFilter == null || statusFilter.isEmpty()) {
             displayTasks = allTasks;
@@ -167,111 +174,89 @@ public class TrackerController {
             displayTasks = trackerService.getTasksByStatus(id, parsedFilter, userId);
         }
 
-        //③ 取得したタスクを並び替える
-        if("idDesc".equals(sortOrder)) {
-            //登録が新しい順(idの降順)
-            displayTasks.sort((t1,t2) -> t2.getId().compareTo(t1.getId()));
-        } else if ("deadlineAsc".equals(sortOrder)){
-            //期限が近い順(nullの場合一番下に)
-            displayTasks.sort((t1, t2) -> {
-                if(t1.getDeadline() == null && t2.getDeadline() == null) return 0;
-                if(t1.getDeadline() == null) return 1;
-                if(t2.getDeadline() == null) return -1;
-                return t1.getDeadline().compareTo(t2.getDeadline());
-            });
-        
-          } else if ("deadlineDesc".equals(sortOrder)) {
-            //期限が遠い順(nullの場合一番下に)
-            displayTasks.sort((t1, t2) -> {
-                if(t1.getDeadline() == null && t2.getDeadline() == null) return 0;
-                if(t1.getDeadline() == null) return 1;
-                if(t2.getDeadline() == null) return -1;
-                return t2.getDeadline().compareTo(t1.getDeadline());
-            });    
-        
-        } else {
-            //デフォルト：登録が古い順(idの昇順)
-            displayTasks.sort(Comparator.comparing(Task::getId));
-        }
-        
+        displayTasks = trackerService.sortTasks(displayTasks, sortOrder);
+
         model.addAttribute("subject", subject);
         model.addAttribute("tasks", displayTasks); // 絞り込んだタスク画面に渡す
         model.addAttribute("totalTasks", totalTasks);
         model.addAttribute("completedTasks", completedTasks);
         model.addAttribute("incompleteTasks", incompleteTasks);
-        
+
         // ④ プルダウンの選択状態（どれが選ばれているか）を保持するためにモデルに渡す
         model.addAttribute("statusFilter", statusFilter);
         model.addAttribute("sortOrder", sortOrder); // 並び替え状態の保持
-        
+
         return "subject_details";
     }
-    
+
     /**
      * 指定した科目に新しいタスクを登録し、科目詳細ページへリダイレクトする。
      * 
-     * <p>科目がログインユーザーの所有ではない場合は{@code "/"} へリダイレクトする。</p>
-     * <p>期限日が未入力または不正な形式の場合、タスクを登録せず
-     * フラッシュメッセージとしてエラー内容を設定して科目詳細ページへ戻す。</p>
+     * <p>
+     * 科目がログインユーザーの所有ではない場合は{@code "/"} へリダイレクトする。
+     * </p>
+     * <p>
+     * 期限日が未入力または不正な形式の場合、タスクを登録せず
+     * フラッシュメッセージとしてエラー内容を設定して科目詳細ページへ戻す。
+     * </p>
      *
-     * @param subjectId タスクを追加する科目のID
-     * @param title     フォームから送信されたタスクタイトル
-     * @param status     フォームから送信されたステータス
-     * @param deadline   フォームから送信された期限
-     * @param reflection フォームから送信された振り返り内容
+     * @param subjectId          タスクを追加する科目のID
+     * @param title              フォームから送信されたタスクタイトル
+     * @param status             フォームから送信されたステータス
+     * @param deadline           フォームから送信された期限
+     * @param reflection         フォームから送信された振り返り内容
      * @param redirectAttributes リダイレクト先へフラッシュメッセージを渡すための属性
-     * @param userDetails ログイン中のユーザー情報     
+     * @param userDetails        ログイン中のユーザー情報
      * @return {@code "/subjects/{subjectId}"} へのリダイレクト
      */
     @PostMapping("/subjects/{subjectId}/tasks")
     public String createTask(
             @PathVariable("subjectId") Long subjectId,
             @RequestParam("title") String title,
-            @RequestParam("status") String status,       
-            @RequestParam("deadline") String deadline,   
-            @RequestParam("reflection") String reflection, 
+            @RequestParam("status") String status,
+            @RequestParam("deadline") String deadline,
+            @RequestParam("reflection") String reflection,
             RedirectAttributes redirectAttributes,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        Long userId = trackerService.currentUserId(userDetails.getUsername());        
-        
-        try{
+        Long userId = trackerService.currentUserId(userDetails.getUsername());
+
+        try {
             trackerService.getSubjectForCurrentUser(subjectId, userId);
         } catch (RuntimeException e) {
             return "redirect:/";
         }
 
-        if(deadline == null || deadline.isBlank()) {
+        if (deadline == null || deadline.isBlank()) {
             redirectAttributes.addFlashAttribute("errorMessage", "期限日を入力してください。");
             return "redirect:/subjects/" + subjectId;
         }
- 
+
         LocalDate parsedDeadline;
-        try{
+        try {
             parsedDeadline = LocalDate.parse(deadline);
         } catch (DateTimeParseException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "期限日の形式が不正です。");
             return "redirect:/subjects/" + subjectId;
-
         }
 
-         TaskStatus parsedStatus;
-         try {
+        TaskStatus parsedStatus;
+        try {
             parsedStatus = TaskStatus.fromValue(status);
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "ステータスが不正です。");
             return "redirect:/subjects/" + subjectId;
         }
 
-        trackerService.createTask(subjectId, userId, title, parsedStatus, parsedDeadline, reflection);
+        trackerService.createTask(subjectId, title, parsedStatus, parsedDeadline, reflection);
         return "redirect:/subjects/" + subjectId;
     }
-    
+
     /**
      * タスクを削除し、科目詳細ページへリダイレクトする。
      *
-     * @param taskId    削除対象のタスクID
-     * @param subjectId リダイレクト先の科目ID
+     * @param taskId      削除対象のタスクID
+     * @param subjectId   リダイレクト先の科目ID
      * @param userDetails ログイン中のユーザー情報
      * @return {@code "/subjects/{subjectId}"} へのリダイレクト
      */
@@ -288,39 +273,39 @@ public class TrackerController {
         }
         return "redirect:/subjects/" + subjectId;
     }
-    
+
     /**
      * タスクのステータスを次の状態に更新し、科目詳細ページへリダイレクトする。
      *
-     * @param taskId 更新対象のタスクID
-     * @param subjectId リダイレクト先の科目ID
-     * @param status 変更後のステータス文字列
+     * @param taskId      更新対象のタスクID
+     * @param subjectId   リダイレクト先の科目ID
+     * @param status      変更後のステータス文字列
      * @param userDetails ログイン中のユーザー情報
      * @return {@code "/subjects/{subjectId}"} へのリダイレクト
      * @throws IllegalArgumentException {@code status} が不正の場合
      */
     @PostMapping("/tasks/{taskId}/status")
-    public String completeTask(
+    public String updateTaskStatus(
             @PathVariable("taskId") Long taskId,
             @RequestParam("subjectId") Long subjectId,
             @RequestParam("status") String status,
             @AuthenticationPrincipal UserDetails userDetails) {
         Long userId = trackerService.currentUserId(userDetails.getUsername());
-        TaskStatus parsedStatus = TaskStatus.fromValue(status);
-        try{
+        try {
+            TaskStatus parsedStatus = TaskStatus.fromValue(status);
             trackerService.updateTaskStatusForCurrentUser(taskId, subjectId, userId, parsedStatus);
         } catch (RuntimeException e) {
             return "redirect:/";
         }
-            return "redirect:/subjects/" + subjectId;
+        return "redirect:/subjects/" + subjectId;
     }
 
     /**
      * タスクの振り返り内容を更新し、科目詳細ページへリダイレクトする。
      *
-     * @param taskId     更新対象のタスクID
-     * @param subjectId  リダイレクト先の科目ID
-     * @param reflection フォームから送信された新しい振り返り内容
+     * @param taskId      更新対象のタスクID
+     * @param subjectId   リダイレクト先の科目ID
+     * @param reflection  フォームから送信された新しい振り返り内容
      * @param userDetails ログイン中のユーザー情報
      * @return {@code "/subjects/{subjectId}"} へのリダイレクト
      */

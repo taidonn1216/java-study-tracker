@@ -10,9 +10,11 @@ import org.springframework.stereotype.Service;
 /**
  * Spring Security 用のユーザー取得サービス。
  * 
- * <p>{@link UserRepository} を使って {@code USERS} テーブルから
+ * <p>
+ * {@link UserRepository} を使って {@code USERS} テーブルから
  * ユーザー情報を取得し、 {@link UserDetails} に変換する。
- * ログイン時にユーザー名からユーザー情報を検索し、パスワード認証に使用される。</p>
+ * ログイン時にユーザー名からユーザー情報を検索し、パスワード認証に使用される。
+ * </p>
  * 
  * @author tracker-team
  * @version 1.0
@@ -22,11 +24,12 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
-    
+
     /** ユーザー情報取得用のリポジトリ */
     private final UserRepository userRepository;
 
-    /** コンストラクタインジェクション 
+    /**
+     * コンストラクタインジェクション
      * 
      * @param userRepository {@link UserRepository} インスタンス
      */
@@ -37,8 +40,10 @@ public class CustomUserDetailsService implements UserDetailsService {
     /**
      * ユーザー名でユーザー情報を検索し、Spring Security 用の {@link UserDetails} に変換する。
      * 
-     * <p>ログイン処理の際に Spring Security から呼び出される。
-     * 指定されたユーザー名が見つからない場合は {@link UsernameNotFoundException} をスロー。</p>
+     * <p>
+     * ログイン処理の際に Spring Security から呼び出される。
+     * 指定されたユーザー名が見つからない場合は {@link UsernameNotFoundException} をスロー。
+     * </p>
      * 
      * @param username 検索するユーザー名
      * @return Spring Security が使用する {@link UserDetails} インスタンス
@@ -54,7 +59,5 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .password(user.getPassword())
                 .roles(user.getRole())
                 .build();
-
-
-    }  
+    }
 }

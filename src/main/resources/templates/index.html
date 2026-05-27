@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,30 +11,30 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-        
+
         .container {
             max-width: 900px;
             margin: 0 auto;
             background: white;
             border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
             padding: 30px;
         }
-        
+
         h1 {
             color: #333;
             margin-bottom: 30px;
             text-align: center;
             font-size: 2em;
         }
-        
+
         .add-subject-form {
             background: #f8f9fa;
             padding: 20px;
@@ -41,19 +42,19 @@
             margin-bottom: 30px;
             border: 2px solid #e9ecef;
         }
-        
+
         .add-subject-form h2 {
             color: #495057;
             margin-bottom: 15px;
             font-size: 1.3em;
         }
-        
+
         .form-group {
             display: flex;
             gap: 10px;
             align-items: center;
         }
-        
+
         input[type="text"] {
             flex: 1;
             padding: 12px 15px;
@@ -62,12 +63,12 @@
             font-size: 1em;
             transition: border-color 0.3s;
         }
-        
+
         input[type="text"]:focus {
             outline: none;
             border-color: #667eea;
         }
-        
+
         .btn {
             padding: 12px 24px;
             border: none;
@@ -77,17 +78,17 @@
             transition: all 0.3s;
             font-weight: 600;
         }
-        
+
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
-        
+
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
-        
+
         .btn-danger {
             background: #dc3545;
             color: white;
@@ -96,20 +97,20 @@
         }
 
         .btn-logout {
-           background: #6c757d;   
-           color: #fff;
-           padding: 8px 14px;
-           font-size: 0.9em;
+            background: #6c757d;
+            color: #fff;
+            padding: 8px 14px;
+            font-size: 0.9em;
         }
-        
+
         .btn-danger:hover {
             background: #c82333;
         }
-        
+
         .subjects-list {
             list-style: none;
         }
-        
+
         .subject-item {
             background: white;
             border: 2px solid #e9ecef;
@@ -118,46 +119,46 @@
             margin-bottom: 15px;
             transition: all 0.3s;
         }
-        
+
         .subject-item:hover {
             border-color: #667eea;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
-        
+
         .subject-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
         }
-        
+
         .subject-name {
             font-size: 1.4em;
             color: #333;
             font-weight: 600;
         }
-        
+
         .subject-name a {
             color: #667eea;
             text-decoration: none;
             transition: color 0.3s;
         }
-        
+
         .subject-name a:hover {
             color: #764ba2;
         }
-        
+
         .subject-actions {
             display: flex;
             gap: 10px;
         }
-        
+
         .subject-stats {
             display: flex;
             align-items: center;
             gap: 20px;
         }
-        
+
         .stat-item {
             display: flex;
             align-items: center;
@@ -165,7 +166,7 @@
             color: #6c757d;
             font-size: 0.95em;
         }
-        
+
         .progress-bar-container {
             flex: 1;
             height: 24px;
@@ -174,7 +175,7 @@
             overflow: hidden;
             position: relative;
         }
-        
+
         .progress-bar {
             height: 100%;
             background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
@@ -186,7 +187,7 @@
             font-size: 0.85em;
             font-weight: 600;
         }
-        
+
         .progress-text {
             position: absolute;
             width: 100%;
@@ -196,13 +197,13 @@
             font-weight: 600;
             color: #495057;
         }
-        
+
         .empty-state {
             text-align: center;
             padding: 40px;
             color: #6c757d;
         }
-        
+
         .empty-state p {
             font-size: 1.1em;
             margin-bottom: 10px;
@@ -241,23 +242,24 @@
         .alert-box a:hover {
             color: #5c161d;
         }
-
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>📚 学習進捗トラッカー</h1>
-        
+
         <!-- ログアウト -->
-         <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+        <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
             <form th:action="@{/logout}" method="post">
-                <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}"
+                    th:value="${_csrf.token}" />
                 <button type="submit" class="btn btn-logout">ログアウト</button>
-              </form>
+            </form>
         </div>
-        
-         <!-- 期限切れのタスクの警告 -->
-         <div th:if="${!#lists.isEmpty(overdueTasks)}" class="alert-box">
+
+        <!-- 期限切れのタスクの警告 -->
+        <div th:if="${!#lists.isEmpty(overdueTasks)}" class="alert-box">
             <h3>⚠️ 期限切れの未完了のタスクがあります</h3>
             <ul>
                 <li th:each="task : ${overdueTasks}">
@@ -266,7 +268,7 @@
                 </li>
             </ul>
         </div>
-        
+
         <!-- 科目登録フォーム -->
         <div class="add-subject-form">
             <h2>新しい科目を追加</h2>
@@ -277,37 +279,36 @@
                 </div>
             </form>
         </div>
-        
+
         <!-- 科目一覧 -->
         <div th:if="${#lists.isEmpty(subjects)}" class="empty-state">
             <p>📖 まだ科目が登録されていません</p>
             <p>上のフォームから最初の科目を追加してください</p>
         </div>
-        
+
         <ul class="subjects-list" th:if="${!#lists.isEmpty(subjects)}">
             <li class="subject-item" th:each="summary : ${subjects}">
                 <div class="subject-header">
                     <div class="subject-name">
-                        <a th:href="@{/subjects/{id}(id=${summary.subject.id})}" 
-                           th:text="${summary.subject.name}">科目名</a>
+                        <a th:href="@{/subjects/{id}(id=${summary.subject.id})}"
+                            th:text="${summary.subject.name}">科目名</a>
                     </div>
                     <div class="subject-actions">
-                        <form th:action="@{/subjects/{id}/delete(id=${summary.subject.id})}" method="post" 
-                              onsubmit="return confirm('この科目と関連するタスクをすべて削除しますか?');">
+                        <form th:action="@{/subjects/{id}/delete(id=${summary.subject.id})}" method="post"
+                            onsubmit="return confirm('この科目と関連するタスクをすべて削除しますか?');">
                             <button type="submit" class="btn btn-danger">削除</button>
                         </form>
                     </div>
                 </div>
-                
+
                 <div class="subject-stats">
                     <div class="stat-item">
                         <span>📝 タスク:</span>
                         <strong th:text="|${summary.completedTasks} / ${summary.totalTasks}|">0 / 0</strong>
                     </div>
-                    
+
                     <div class="progress-bar-container">
-                        <div class="progress-bar" 
-                             th:style="'width: ' + ${summary.progressPercentage} + '%'">
+                        <div class="progress-bar" th:style="'width: ' + ${summary.progressPercentage} + '%'">
                         </div>
                         <div class="progress-text" th:text="${summary.progressPercentage} + '%'">0%</div>
                     </div>
@@ -316,4 +317,5 @@
         </ul>
     </div>
 </body>
+
 </html>

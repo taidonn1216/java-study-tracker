@@ -15,7 +15,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import com.example.tracker.model.User;
 
 @JdbcTest
-@Import({UserRepositoryImpl.class})
+@Import({ UserRepositoryImpl.class })
 public class UserRepositoryImplTest {
 
     @Autowired
@@ -34,18 +34,16 @@ public class UserRepositoryImplTest {
         jdbcTemplate.execute("ALTER TABLE USERS ALTER COLUMN id RESTART WITH 1");
 
         jdbcTemplate.update(
-            "INSERT INTO USERS (username, password, enabled, role) VALUES (?, ?, ?, ?)",
-            "testuser",
-            "$2b$10$8gl4P.2H1sEOH0mU8moubOHvLxrfqr6AKtJ326H3CbgJ2dikD9/ma",
-            true,
-            "GENERAL"
-        );
+                "INSERT INTO USERS (username, password, enabled, role) VALUES (?, ?, ?, ?)",
+                "testuser",
+                "$2b$10$8gl4P.2H1sEOH0mU8moubOHvLxrfqr6AKtJ326H3CbgJ2dikD9/ma",
+                true,
+                "GENERAL");
 
         userId = jdbcTemplate.queryForObject(
-            "SELECT id FROM USERS WHERE username = ?",
-            Long.class,
-            "testuser"
-        );
+                "SELECT id FROM USERS WHERE username = ?",
+                Long.class,
+                "testuser");
     }
 
     @Test
@@ -53,6 +51,7 @@ public class UserRepositoryImplTest {
         Optional<User> user = userRepository.findByUsername("testuser");
         assertTrue(user.isPresent());
         assertEquals("testuser", user.get().getUsername());
+        assertEquals("GENERAL", user.get().getRole());
     }
 
     @Test
@@ -67,7 +66,7 @@ public class UserRepositoryImplTest {
         Optional<User> user = userRepository.findByUsername("newuser");
         assertTrue(user.isPresent());
         assertEquals("newuser", user.get().getUsername());
-
+        assertEquals("GENERAL", user.get().getRole());
     }
 
     @Test
@@ -75,6 +74,8 @@ public class UserRepositoryImplTest {
         userRepository.insert("newuser", "password");
         List<User> users = userRepository.findAll();
         assertEquals(2, users.size());
+        assertTrue(users.stream().anyMatch(u -> u.getUsername().equals("testuser")));
+        assertTrue(users.stream().anyMatch(u -> u.getUsername().equals("newuser")));
     }
 
     @Test
@@ -85,8 +86,9 @@ public class UserRepositoryImplTest {
     }
 
     @Test
-    void testFindById(){
+    void testFindById() {
         User user = userRepository.findById(userId);
         assertEquals("testuser", user.getUsername());
-    }    
+        assertEquals("GENERAL", user.getRole());
+    }
 }

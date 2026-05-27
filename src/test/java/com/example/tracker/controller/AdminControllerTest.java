@@ -63,10 +63,10 @@ public class AdminControllerTest {
         when(userRepository.findById(1L)).thenReturn(target);
 
         mockMvc.perform(post("/admin/users/1/role")
-               .param("role", "GENERAL")
-               .with(csrf()))
-               .andExpect(status().is3xxRedirection())
-               .andExpect(redirectedUrl("/admin"));
+                .param("role", "GENERAL")
+                .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin"));
     }
 
     @Test
@@ -78,20 +78,47 @@ public class AdminControllerTest {
         when(userRepository.findById(1L)).thenReturn(target);
 
         mockMvc.perform(post("/admin/users/1/role")
-               .param("role", "GENERAL")
-               .with(csrf()))
-               .andExpect(status().is3xxRedirection())
-               .andExpect(redirectedUrl("/admin"))
-               .andExpect(flash().attribute("errorMessage", "自分自身の権限は変更できません。"));
+                .param("role", "GENERAL")
+                .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin"))
+                .andExpect(flash().attribute("errorMessage", "自分自身の権限は変更できません。"));
     }
 
     @Test
     void 未認証でPOSTすると302リダイレクト() throws Exception {
         mockMvc.perform(post("/admin/users/1/role")
-               .param("role", "GENERAL")
-               .with(csrf()))
-               .andExpect(status().is3xxRedirection())
-               .andExpect(redirectedUrlPattern("**/login"));
+                .param("role", "GENERAL")
+                .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrlPattern("**/login"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void 不正なロールはadminにリダイレクト() throws Exception {
+        User target = new User();
+        target.setUsername("user");
+        when(userRepository.findById(1L)).thenReturn(target);
+
+        mockMvc.perform(post("/admin/users/1/role")
+                .param("role", "HACKER")
+                .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin"))
+                .andExpect(flash().attribute("errorMessage", "不正なロールです。"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = "ADMIN")
+    void 存在しないユーザーIDはadminにリダイレクト() throws Exception {
+        when(userRepository.findById(999L)).thenThrow(new RuntimeException("not found"));
+
+        mockMvc.perform(post("/admin/users/999/role")
+                .param("role", "GENERAL")
+                .with(csrf()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin"));
     }
 
 }

@@ -12,8 +12,10 @@ import java.util.Optional;
 /**
  * {@link SubjectRepository} の JDBC 実装クラス。
  *
- * <p>Spring {@link JdbcTemplate} を使用して {@code SUBJECT} テーブルに
- * 対するCRUD操作を実行する。{@code @Repository} としてSpring DIコンテナに登録される。</p>
+ * <p>
+ * Spring {@link JdbcTemplate} を使用して {@code SUBJECT} テーブルに
+ * 対するCRUD操作を実行する。{@code @Repository} としてSpring DIコンテナに登録される。
+ * </p>
  *
  * @author tracker-team
  * @version 1.0
@@ -55,7 +57,10 @@ public class SubjectRepositoryImpl implements SubjectRepository {
     /**
      * {@inheritDoc}
      *
-     * <p>内部では以下のSQLを実行し、LEFT JOIN で TASK テーブルを集計する:</p>
+     * <p>
+     * 内部では以下のSQLを実行し、LEFT JOIN で TASK テーブルを集計する:
+     * </p>
+     * 
      * <pre>
      * SELECT s.id, s.name,
      *        COUNT(t.id) as total_tasks,
@@ -69,29 +74,29 @@ public class SubjectRepositoryImpl implements SubjectRepository {
     @Override
     public List<SubjectSummary> findAllWithTaskStatsByUserId(Long userId) {
         String sql = """
-            SELECT 
-                s.id, s.name,
-                COUNT(t.id) as total_tasks,
-                SUM(CASE WHEN t.status = 'DONE' THEN 1 ELSE 0 END) as completed_tasks
-            FROM SUBJECT s
-            LEFT JOIN TASK t ON s.id = t.subject_id
-            WHERE s.user_id = ?
-            GROUP BY s.id, s.name
-            ORDER BY s.id
-            """;
-        
+                SELECT
+                    s.id, s.name,
+                    COUNT(t.id) as total_tasks,
+                    SUM(CASE WHEN t.status = 'DONE' THEN 1 ELSE 0 END) as completed_tasks
+                FROM SUBJECT s
+                LEFT JOIN TASK t ON s.id = t.subject_id
+                WHERE s.user_id = ?
+                GROUP BY s.id, s.name
+                ORDER BY s.id
+                """;
+
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             Subject subject = new Subject();
             subject.setId(rs.getLong("id"));
             subject.setName(rs.getString("name"));
-            
+
             int totalTasks = rs.getInt("total_tasks");
             int completedTasks = rs.getInt("completed_tasks");
-            
+
             return new SubjectSummary(subject, totalTasks, completedTasks);
         }, userId);
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public Optional<Subject> findByIdAndUserId(Long id, Long userId) {

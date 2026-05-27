@@ -11,8 +11,10 @@ import java.util.Optional;
 /**
  * {@link UserRepository} のJDBC実装クラス。
  * 
- * <p>Spring {@link JdbcTemplate} を使用して {@code USERS} テーブルに対する操作を実行する。
- * {@code @Repository} としてSpring DIコンテナに登録される</p>
+ * <p>
+ * Spring {@link JdbcTemplate} を使用して {@code USERS} テーブルに対する操作を実行する。
+ * {@code @Repository} としてSpring DIコンテナに登録される
+ * </p>
  * 
  * @author tracker-team
  * @version 1.0
@@ -37,23 +39,23 @@ public class UserRepositoryImpl implements UserRepository {
         return user;
     };
 
-     /**
-      * コンストラクタインジェクション
-      * 
-      * @param jdbcTemplate Springが提供する {@link JdbcTemplate} インスタンス
-      */
-     public UserRepositoryImpl(JdbcTemplate jdbcTemplate) {
+    /**
+     * コンストラクタインジェクション
+     * 
+     * @param jdbcTemplate Springが提供する {@link JdbcTemplate} インスタンス
+     */
+    public UserRepositoryImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-     }
+    }
 
-     /** {@inheritDoc} */
+    /** {@inheritDoc} */
     @Override
     public Optional<User> findByUsername(String username) {
         String sql = "SELECT id, username, password, role FROM USERS WHERE username = ?";
-        List<User> users = jdbcTemplate.query(sql,userRowMapper,username);
+        List<User> users = jdbcTemplate.query(sql, userRowMapper, username);
         return users.stream().findFirst();
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public void insert(String username, String password) {

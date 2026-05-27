@@ -12,9 +12,11 @@ import java.util.List;
 /**
  * {@link TaskRepository} の JDBC 実装クラス。
  *
- * <p>Spring {@link JdbcTemplate} を使用して {@code TASK} テーブルに
+ * <p>
+ * Spring {@link JdbcTemplate} を使用して {@code TASK} テーブルに
  * 対するCRUD操作および統計クエリを実行する。
- * {@code @Repository} としてSpring DIコンテナに登録される。</p>
+ * {@code @Repository} としてSpring DIコンテナに登録される。
+ * </p>
  *
  * @author tracker-team
  * @version 1.0
@@ -37,7 +39,8 @@ public class TaskRepositoryImpl implements TaskRepository {
         task.setTitle(rs.getString("title"));
         task.setStatus(TaskStatus.fromValue(rs.getString("status")));
         task.setDeadline(rs.getObject("deadline", LocalDate.class));
-        task.setReflection(rs.getString("reflection") !=null ? rs.getString("reflection") : "");
+        String reflection = rs.getString("reflection");
+        task.setReflection(reflection != null ? reflection : "");
         return task;
     };
 
@@ -54,25 +57,25 @@ public class TaskRepositoryImpl implements TaskRepository {
     @Override
     public List<Task> findBySubjectIdAndUserId(Long subjectId, Long userId) {
         String sql = """
-            SELECT t.id, t.subject_id, t.title, t.status, t.deadline, t.reflection  
-            FROM TASK t 
-            JOIN SUBJECT s ON s.id = t.subject_id
-            WHERE t.subject_id = ? AND s.user_id = ?
-            ORDER BY t.id;
-            """;
+                SELECT t.id, t.subject_id, t.title, t.status, t.deadline, t.reflection
+                FROM TASK t
+                JOIN SUBJECT s ON s.id = t.subject_id
+                WHERE t.subject_id = ? AND s.user_id = ?
+                ORDER BY t.id;
+                """;
         return jdbcTemplate.query(sql, taskRowMapper, subjectId, userId);
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public List<Task> findBySubjectIdAndStatusAndUserId(Long subjectId, TaskStatus status, Long userId) {
         String sql = """
-            SELECT t.id, t.subject_id, t.title, t.status, t.deadline, t.reflection 
-            FROM TASK t 
-            JOIN SUBJECT s ON s.id = t.subject_id
-            WHERE t.subject_id = ? AND t.status = ? AND s.user_id = ?
-            ORDER BY t.id
-            """;
+                SELECT t.id, t.subject_id, t.title, t.status, t.deadline, t.reflection
+                FROM TASK t
+                JOIN SUBJECT s ON s.id = t.subject_id
+                WHERE t.subject_id = ? AND t.status = ? AND s.user_id = ?
+                ORDER BY t.id
+                """;
         return jdbcTemplate.query(sql, taskRowMapper, subjectId, status.name(), userId);
     }
 
@@ -85,50 +88,34 @@ public class TaskRepositoryImpl implements TaskRepository {
 
     /** {@inheritDoc} */
     @Override
-    public int deleteByIdAndUserId(Long taskId, Long userId) { 
+    public int deleteByIdAndUserId(Long taskId, Long userId) {
         String sql = """
-            DELETE FROM TASK t
-            WHERE t.id = ?
-                AND EXISTS (
-                    SELECT 1
-                    FROM SUBJECT s
-                    WHERE s.id = t.subject_id
-                      AND s.user_id = ?
-                )
-            """;
-        return jdbcTemplate.update(sql, taskId,userId);
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public int countBySubjectId(Long subjectId) {
-        String sql = "SELECT COUNT(*) FROM TASK WHERE subject_id = ?";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, subjectId);
-        return count != null ? count : 0;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public int countCompletedBySubjectId(Long subjectId) {
-        String sql = "SELECT COUNT(*) FROM TASK WHERE subject_id = ? AND status = 'DONE'";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, subjectId);
-        return count != null ? count : 0;
+                DELETE FROM TASK t
+                WHERE t.id = ?
+                    AND EXISTS (
+                        SELECT 1
+                        FROM SUBJECT s
+                        WHERE s.id = t.subject_id
+                          AND s.user_id = ?
+                    )
+                """;
+        return jdbcTemplate.update(sql, taskId, userId);
     }
 
     /** {@inheritDoc} */
     @Override
     public int updateStatusByIdAndUserId(Long taskId, TaskStatus status, Long userId) {
         String sql = """
-            UPDATE TASK t
-            SET status = ?
-            WHERE t.id = ?
-              AND EXISTS (
-                  SELECT 1
-                  FROM SUBJECT s
-                  WHERE s.id = t.subject_id
-                    AND s.user_id = ? 
-              )
-            """;
+                UPDATE TASK t
+                SET status = ?
+                WHERE t.id = ?
+                  AND EXISTS (
+                      SELECT 1
+                      FROM SUBJECT s
+                      WHERE s.id = t.subject_id
+                        AND s.user_id = ?
+                  )
+                """;
         return jdbcTemplate.update(sql, status.name(), taskId, userId);
     }
 
@@ -136,34 +123,34 @@ public class TaskRepositoryImpl implements TaskRepository {
     @Override
     public int updateReflectionByIdAndUserId(Long taskId, String reflection, Long userId) {
         String sql = """
-            UPDATE TASK t
-            SET reflection = ? 
-            WHERE t.id = ?
-              AND EXISTS (
-                  SELECT 1
-                  FROM SUBJECT s
-                  WHERE s.id = t.subject_id
-                    AND s.user_id = ? 
-              )
-            """;
+                UPDATE TASK t
+                SET reflection = ?
+                WHERE t.id = ?
+                  AND EXISTS (
+                      SELECT 1
+                      FROM SUBJECT s
+                      WHERE s.id = t.subject_id
+                        AND s.user_id = ?
+                  )
+                """;
         return jdbcTemplate.update(sql, reflection, taskId, userId);
     }
-   
+
     /** {@inheritDoc} */
     @Override
     public List<Task> findOverdueTasksByUserId(Long userId, LocalDate today) {
         String sql = """
-            SELECT t.id, t.subject_id, t.title, t.status, t.deadline, t.reflection
-            FROM TASK t  
-            JOIN SUBJECT s ON s.id = t.subject_id
-            WHERE s.user_id = ?
-              AND t.deadline < ?
-              AND t.status != 'DONE'
-            ORDER BY t.deadline ASC   
-            """;
+                SELECT t.id, t.subject_id, t.title, t.status, t.deadline, t.reflection
+                FROM TASK t
+                JOIN SUBJECT s ON s.id = t.subject_id
+                WHERE s.user_id = ?
+                  AND t.deadline < ?
+                  AND t.status != 'DONE'
+                ORDER BY t.deadline ASC
+                """;
         return jdbcTemplate.query(sql, taskRowMapper, userId, today);
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public boolean existsByIdAndSubjectIdAndUserId(Long taskId, Long subjectId, Long userId) {
@@ -174,9 +161,6 @@ public class TaskRepositoryImpl implements TaskRepository {
                 WHERE t.id = ? AND t.subject_id = ? AND s.user_id = ?
                 """;
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, taskId, subjectId, userId);
-        return count != null && count > 0;        
+        return count != null && count > 0;
     }
-
 }
-
-

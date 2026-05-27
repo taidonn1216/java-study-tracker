@@ -1,8 +1,9 @@
 package com.example.tracker.service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,8 +19,10 @@ import com.example.tracker.repository.UserRepository;
 /**
  * トラッカー機能のサービス層。
  * 
- * <p>ログインユーザーの識別など、 Controller から呼び出す
- * 共通ロジックを提供する。</p>
+ * <p>
+ * ログインユーザーの識別など、 Controller から呼び出す
+ * 共通ロジックを提供する。
+ * </p>
  */
 @Service
 public class TrackerService {
@@ -33,9 +36,9 @@ public class TrackerService {
     /**
      * コンストラクタ
      * 
-     * @param userRepository ユーザーリポジトリ
+     * @param userRepository    ユーザーリポジトリ
      * @param subjectRepository 科目リポジトリ
-     * @param taskRepository タスクリポジトリ
+     * @param taskRepository    タスクリポジトリ
      */
     public TrackerService(
             UserRepository userRepository,
@@ -55,9 +58,10 @@ public class TrackerService {
      */
     public Long currentUserId(String username) {
         return userRepository.findByUsername(username)
-            .orElseThrow(() -> new RuntimeException("User not found: " + username))
-            .getId();
+                .orElseThrow(() -> new RuntimeException("User not found: " + username))
+                .getId();
     }
+
     /**
      * ログインユーザーの科目サマリー一覧を取得する。
      * 
@@ -68,61 +72,46 @@ public class TrackerService {
         Long userId = currentUserId(username);
         return subjectRepository.findAllWithTaskStatsByUserId(userId);
     }
-    
+
     /**
      * ログインユーザーの期限切れのタスクを取得する。
      * 
      * @param username ログインユーザー名
-     * @param today 今日の日付
+     * @param today    今日の日付
      * @return 期限切れタスク一覧
      */
     public List<Task> getOverdueTasksForCurrentUser(String username, LocalDate today) {
         Long userId = currentUserId(username);
         return taskRepository.findOverdueTasksByUserId(userId, today);
     }
-    
-    /**
-     * 指定科目をログインユーザー条件で取得する
-     * 
-     * <p>対象の科目が存在しない場合、またはログインユーザーの所有でない場合は
-     * 空の {@link Optional} を返す。</p>
-     * 
-     * @param subjectId 科目ID
-     * @param username ログインユーザー名
-     * @return 条件に一致する科目。 存在しない場合は空
-     */
-    public Optional<Subject> getSubjectForCurrentUser(Long subjectId, String username) {
-        Long userId = currentUserId(username);
-        return subjectRepository.findByIdAndUserId(subjectId, userId);
-    }
-    
+
     /**
      * 指定科目がログインユーザー所有か確認して取得する。
      * 
      * @param subjectId 科目ID
-     * @param userId ユーザーID
+     * @param userId    ユーザーID
      * @return 科目
      */
     public Subject getSubjectForCurrentUser(Long subjectId, Long userId) {
         return subjectRepository.findByIdAndUserId(subjectId, userId)
                 .orElseThrow(() -> new RuntimeException("Subject not found or forbidden"));
     }
-    
+
     /**
      * ログインユーザー配下に科目を作成する。
      * 
-     * @param name 科目名
+     * @param name   科目名
      * @param userId ユーザーID
      */
     public void createSubjectForCurrentUser(String name, Long userId) {
         subjectRepository.insert(name, userId);
     }
-    
+
     /**
      * ログインユーザー配下の科目を削除する。
      * 
      * @param subjectId 科目ID
-     * @param userId ユーザーID
+     * @param userId    ユーザーID
      */
     @Transactional
     public void deleteSubjectForCurrentUser(Long subjectId, Long userId) {
@@ -131,72 +120,73 @@ public class TrackerService {
             throw new RuntimeException("Subject not found or forbidden");
         }
     }
-    
+
     /**
      * 指定した科目に紐づくタスク一覧を取得する。
      * 
      * @param subjectId 科目ID
-     * @param userId ユーザーID
+     * @param userId    ユーザーID
      * @return タスク一覧
      */
     public List<Task> getTasksForSubject(Long subjectId, Long userId) {
         return taskRepository.findBySubjectIdAndUserId(subjectId, userId);
     }
-    
+
     /**
      * 指定した科目のタスクをステータスで絞り込んで取得する。
      * 
      * @param subjectId 科目ID
-     * @param status ステータス
-     * @param userId ユーザーID
+     * @param status    ステータス
+     * @param userId    ユーザーID
      * @return タスク一覧
      */
     public List<Task> getTasksByStatus(Long subjectId, TaskStatus status, Long userId) {
-         return taskRepository.findBySubjectIdAndStatusAndUserId(subjectId, status, userId);
+        return taskRepository.findBySubjectIdAndStatusAndUserId(subjectId, status, userId);
     }
-    
+
     /**
      * ステータス更新 (2段階チェック付き)。
      * 
-     * @param taskId タスクID
+     * @param taskId    タスクID
      * @param subjectId 科目ID
-     * @param userId ユーザーID
-     * @param status 新ステータス
+     * @param userId    ユーザーID
+     * @param status    新ステータス
      */
-    @Transactional 
+    @Transactional
     public void updateTaskStatusForCurrentUser(Long taskId, Long subjectId, Long userId, TaskStatus status) {
         getSubjectForCurrentUser(subjectId, userId);
 
         boolean belongs = taskRepository.existsByIdAndSubjectIdAndUserId(taskId, subjectId, userId);
-        if(!belongs) {
+        if (!belongs) {
             throw new RuntimeException("Task not found or forbidden");
         }
-        
+
         int updated = taskRepository.updateStatusByIdAndUserId(taskId, status, userId);
-        if(updated == 0) {
+        if (updated == 0) {
             throw new RuntimeException("Task update failed");
         }
-    }    
+    }
+
     /**
      * タスクを作成する。
      * 
-     * @param subjectId 科目ID
-     * @param userId ユーザーID
-     * @param title タスクタイトル
-     * @param status ステータス
-     * @param deadline 期限日
+     * @param subjectId  科目ID
+     * @param title      タスクタイトル
+     * @param status     ステータス
+     * @param deadline   期限日
      * @param reflection 振り返り
      */
-
-    public void createTask(Long subjectId, Long userId, String title, TaskStatus status, LocalDate deadline, String reflection) {
+    public void createTask(Long subjectId, String title, TaskStatus status, LocalDate deadline, String reflection) {
         taskRepository.insert(subjectId, title, status, deadline, reflection);
     }
-        
+
     /**
      * 指定したタスクを、ログインユーザーの所有者条件で削除する。
      * 
-     * <p>削除件数が0件の場合は、対象タスクが存在しないか、
-     * または他ユーザーのタスクである。</p>
+     * <p>
+     * 削除件数が0件の場合は、対象タスクが存在しないか、
+     * または他ユーザーのタスクである。
+     * </p>
      * 
      * @param taskId 削除対象のタスクID
      * @param userId ログインユーザーID
@@ -209,16 +199,18 @@ public class TrackerService {
             throw new RuntimeException("Task not found or forbidden");
         }
     }
-    
+
     /**
      * 指定したタスクの振り返りを、ログインユーザー所有条件で更新をする。
      * 
-     * <p>更新件数が0件の場合は、対象タスクが存在しないか、
-     * または他ユーザーのタスクである</p>
+     * <p>
+     * 更新件数が0件の場合は、対象タスクが存在しないか、
+     * または他ユーザーのタスクである
+     * </p>
      * 
-     * @param taskId 更新対象のタスクID
+     * @param taskId     更新対象のタスクID
      * @param reflection 新しい振り返り内容
-     * @param userId ログインユーザーID
+     * @param userId     ログインユーザーID
      * @throws RuntimeException 対象タスクが存在しない、または権限がない場合
      */
     public void updateReflectionForCurrentUser(Long taskId, String reflection, Long userId) {
@@ -226,6 +218,36 @@ public class TrackerService {
         if (updated == 0) {
             throw new RuntimeException("Task not found or forbidden");
         }
+    }
+    
+    /**
+     * 
+     * @param tasks
+     * @param sortOrder
+     * @return
+     */
+    public List<Task> sortTasks(List<Task> tasks, String sortOrder) {
+        List<Task> sorted = new ArrayList<>(tasks);
+        if("idDesc".equals(sortOrder)) {
+            sorted.sort((t1, t2) -> t2.getId().compareTo(t1.getId()));
+        }else if ("deadlineAsc".equals(sortOrder)) {
+            sorted.sort((t1, t2) -> {
+                if(t1.getDeadline() == null && t2.getDeadline() == null) return 0;
+                if(t1.getDeadline() == null) return 1;
+                if(t2.getDeadline() == null) return -1;
+                return t1.getDeadline().compareTo(t2.getDeadline());
+            });
+        }else if ("deadlineDesc".equals(sortOrder)) {
+            sorted.sort((t1, t2) -> {
+                if( t1.getDeadline() == null && t2.getDeadline() == null) return 0;
+                if (t1.getDeadline() == null) return 1;
+                if (t2.getDeadline() == null) return -1; 
+                return t2.getDeadline().compareTo(t1.getDeadline());
+            });
+        } else {
+            sorted.sort(Comparator.comparing(Task::getId));
+        }
+        return sorted;
     }
 
 }

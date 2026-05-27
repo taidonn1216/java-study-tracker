@@ -46,8 +46,6 @@ public class Task {
     /** タスク完了時の学び・振り返り */
     private String reflection;
 
-
-
     /**
      * デフォルトコンストラクタ。
      */
@@ -57,11 +55,11 @@ public class Task {
     /**
      * 全フィールド指定コンストラクタ。
      *
-     * @param id タスクID
-     * @param subjectId 所属する科目のID
-     * @param title タスクのタイトル
-     * @param status ステータス
-     * @param deadline 期限日
+     * @param id         タスクID
+     * @param subjectId  所属する科目のID
+     * @param title      タスクのタイトル
+     * @param status     ステータス
+     * @param deadline   期限日
      * @param reflection 振り返り
      */
     public Task(Long id, Long subjectId, String title, TaskStatus status, LocalDate deadline, String reflection) {
@@ -128,23 +126,6 @@ public class Task {
     }
 
     /**
-     * このオブジェクトの文字列表現を返す。
-     *
-     * @return {@code Task{id=..., subjectId=..., title='...', status='...', deadline='...', reflection='...'}} 形式の文字列
-     */
-    @Override
-    public String toString() {
-        return "Task{" +
-                "id=" + id +
-                ", subjectId=" + subjectId +
-                ", title='" + title + '\'' +
-                ", status='" + status +  '\'' +
-                ", deadline=" + deadline +
-                ", reflection='" + reflection + '\'' +
-                '}';
-    }
-
-    /**
      * ステータスを返す。
      * 
      * @return ステータス (未着手・進行中・完了)いずれか
@@ -161,7 +142,7 @@ public class Task {
     public void setStatus(TaskStatus status) {
         this.status = status;
     }
-    
+
     /**
      * 期限日を返す。
      * 
@@ -198,5 +179,21 @@ public class Task {
         this.reflection = reflection;
     }
 
-
+    /**
+     * このオブジェクトの文字列表現を返す。
+     *
+     * @return {@code Task{id=..., subjectId=..., title='...', status='...', deadline='...', reflection='...'}}
+     *         形式の文字列
+     */
+    @Override
+    public String toString() {
+        return "Task{" +
+                "id=" + id +
+                ", subjectId=" + subjectId +
+                ", title='" + title + '\'' +
+                ", status='" + status + '\'' +
+                ", deadline=" + deadline +
+                ", reflection='" + reflection + '\'' +
+                '}';
+    }
 }
