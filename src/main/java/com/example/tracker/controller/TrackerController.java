@@ -1,5 +1,7 @@
 package com.example.tracker.controller;
 
+import com.example.tracker.exception.AccessForbiddenException;
+import com.example.tracker.exception.ResourceNotFoundException;
 import com.example.tracker.model.Subject;
 import com.example.tracker.model.SubjectSummary;
 import com.example.tracker.model.Task;
@@ -151,11 +153,11 @@ public class TrackerController {
 
         Long userId = trackerService.currentUserId(userDetails.getUsername());
 
-        // subjectOpt → Subject を直接取得(見つからなければ RuntimeException → リダイレクト)
+        // subjectOpt → Subject を直接取得(見つからなければ AcceseForbddenException → リダイレクト)
         Subject subject;
         try {
             subject = trackerService.getSubjectForCurrentUser(id, userId);
-        } catch (RuntimeException e) {
+        } catch (ResourceNotFoundException | AccessForbiddenException e) {
             return "redirect:/";
         }
 
@@ -223,7 +225,7 @@ public class TrackerController {
 
         try {
             trackerService.getSubjectForCurrentUser(subjectId, userId);
-        } catch (RuntimeException e) {
+        } catch (ResourceNotFoundException | AccessForbiddenException e) {
             return "redirect:/";
         }
 
@@ -268,7 +270,7 @@ public class TrackerController {
         Long userId = trackerService.currentUserId(userDetails.getUsername());
         try {
             trackerService.deleteTaskForCurrentUser(taskId, userId);
-        } catch (RuntimeException e) {
+        } catch (ResourceNotFoundException | AccessForbiddenException e) {
             return "redirect:/";
         }
         return "redirect:/subjects/" + subjectId;
@@ -294,7 +296,7 @@ public class TrackerController {
         try {
             TaskStatus parsedStatus = TaskStatus.fromValue(status);
             trackerService.updateTaskStatusForCurrentUser(taskId, subjectId, userId, parsedStatus);
-        } catch (RuntimeException e) {
+        } catch (ResourceNotFoundException | AccessForbiddenException e) {
             return "redirect:/";
         }
         return "redirect:/subjects/" + subjectId;

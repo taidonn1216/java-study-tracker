@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.tracker.model.Task;
 import com.example.tracker.model.TaskStatus;
+import com.example.tracker.exception.AccessForbiddenException;
+import com.example.tracker.exception.ResourceNotFoundException;
 import com.example.tracker.model.Subject;
 import com.example.tracker.model.SubjectSummary;
 import com.example.tracker.repository.SubjectRepository;
@@ -54,11 +56,11 @@ public class TrackerService {
      * 
      * @param username ログインユーザー名
      * @return ユーザーID
-     * @throws RuntimeException 指定されたユーザーが存在しない場合
+     * @throws ResourceNotFoundException 指定されたユーザーが存在しない場合
      */
     public Long currentUserId(String username) {
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found: " + username))
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username))
                 .getId();
     }
 
@@ -91,10 +93,11 @@ public class TrackerService {
      * @param subjectId 科目ID
      * @param userId    ユーザーID
      * @return 科目
+     * @throws AccessForbiddenException 科目が存在しないか、他ユーザーの科目の場合
      */
     public Subject getSubjectForCurrentUser(Long subjectId, Long userId) {
         return subjectRepository.findByIdAndUserId(subjectId, userId)
-                .orElseThrow(() -> new RuntimeException("Subject not found or forbidden"));
+                .orElseThrow(() -> new AccessForbiddenException("Subject not found or forbidden"));
     }
 
     /**
@@ -112,12 +115,13 @@ public class TrackerService {
      * 
      * @param subjectId 科目ID
      * @param userId    ユーザーID
+     * @throws AccessForbiddenException 科目が存在しないか、他ユーザーの科目の場合
      */
     @Transactional
     public void deleteSubjectForCurrentUser(Long subjectId, Long userId) {
         int deleted = subjectRepository.deleteByIdAndUserId(subjectId, userId);
         if (deleted == 0) {
-            throw new RuntimeException("Subject not found or forbidden");
+            throw new AccessForbiddenException("Subject not found or forbidden");
         }
     }
 
@@ -151,6 +155,8 @@ public class TrackerService {
      * @param subjectId 科目ID
      * @param userId    ユーザーID
      * @param status    新ステータス
+     * @throws AccessForbiddenException  タスクが他ユーザーの所有の場合
+     * @throws ResourceNotFoundException タスク更新に失敗した場合
      */
     @Transactional
     public void updateTaskStatusForCurrentUser(Long taskId, Long subjectId, Long userId, TaskStatus status) {
@@ -158,12 +164,12 @@ public class TrackerService {
 
         boolean belongs = taskRepository.existsByIdAndSubjectIdAndUserId(taskId, subjectId, userId);
         if (!belongs) {
-            throw new RuntimeException("Task not found or forbidden");
+            throw new AccessForbiddenException("Task not found or forbidden");
         }
 
         int updated = taskRepository.updateStatusByIdAndUserId(taskId, status, userId);
         if (updated == 0) {
-            throw new RuntimeException("Task update failed");
+            throw new ResourceNotFoundException("Task update failed");
         }
     }
 
@@ -190,13 +196,13 @@ public class TrackerService {
      * 
      * @param taskId 削除対象のタスクID
      * @param userId ログインユーザーID
-     * @throws RuntimeException 対象タスクが存在しない、または権限がない場合
+     * @throws AccessForbiddenException 対象タスクが存在しない、または権限がない場合
      */
     @Transactional
     public void deleteTaskForCurrentUser(Long taskId, Long userId) {
         int deleted = taskRepository.deleteByIdAndUserId(taskId, userId);
         if (deleted == 0) {
-            throw new RuntimeException("Task not found or forbidden");
+            throw new AccessForbiddenException("Task not found or forbidden");
         }
     }
 
@@ -211,37 +217,50 @@ public class TrackerService {
      * @param taskId     更新対象のタスクID
      * @param reflection 新しい振り返り内容
      * @param userId     ログインユーザーID
-     * @throws RuntimeException 対象タスクが存在しない、または権限がない場合
+     * @throws AccessForbiddenException 対象タスクが存在しない、または権限がない場合
      */
     public void updateReflectionForCurrentUser(Long taskId, String reflection, Long userId) {
         int updated = taskRepository.updateReflectionByIdAndUserId(taskId, reflection, userId);
         if (updated == 0) {
-            throw new RuntimeException("Task not found or forbidden");
+            throw new AccessForbiddenException("Task not found or forbidden");
         }
     }
     
     /**
+     * タスク一覧を指定した順序で並び替える。
      * 
-     * @param tasks
-     * @param sortOrder
-     * @return
+     * <p>
+     * 元のリストは変更せず、新しいリストを返す。
+     * </p>
+     * 
+     * @param tasks     並び替え対象のタスク一覧
+     * @param sortOrder 並び替え条件
+     *                  ({@code idAsc} / {@code isDesc} / {@code deadlineAsc} /
+     *                  {@code deadlineDesc})
+     * @return 並び替え後のタスク一覧
      */
     public List<Task> sortTasks(List<Task> tasks, String sortOrder) {
         List<Task> sorted = new ArrayList<>(tasks);
-        if("idDesc".equals(sortOrder)) {
+        if ("idDesc".equals(sortOrder)) {
             sorted.sort((t1, t2) -> t2.getId().compareTo(t1.getId()));
-        }else if ("deadlineAsc".equals(sortOrder)) {
+        } else if ("deadlineAsc".equals(sortOrder)) {
             sorted.sort((t1, t2) -> {
-                if(t1.getDeadline() == null && t2.getDeadline() == null) return 0;
-                if(t1.getDeadline() == null) return 1;
-                if(t2.getDeadline() == null) return -1;
+                if (t1.getDeadline() == null && t2.getDeadline() == null)
+                    return 0;
+                if (t1.getDeadline() == null)
+                    return 1;
+                if (t2.getDeadline() == null)
+                    return -1;
                 return t1.getDeadline().compareTo(t2.getDeadline());
             });
-        }else if ("deadlineDesc".equals(sortOrder)) {
+        } else if ("deadlineDesc".equals(sortOrder)) {
             sorted.sort((t1, t2) -> {
-                if( t1.getDeadline() == null && t2.getDeadline() == null) return 0;
-                if (t1.getDeadline() == null) return 1;
-                if (t2.getDeadline() == null) return -1; 
+                if (t1.getDeadline() == null && t2.getDeadline() == null)
+                    return 0;
+                if (t1.getDeadline() == null)
+                    return 1;
+                if (t2.getDeadline() == null)
+                    return -1;
                 return t2.getDeadline().compareTo(t1.getDeadline());
             });
         } else {
