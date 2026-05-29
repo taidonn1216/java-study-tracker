@@ -219,6 +219,7 @@ public class TrackerService {
      * @param userId     ログインユーザーID
      * @throws AccessForbiddenException 対象タスクが存在しない、または権限がない場合
      */
+    @Transactional
     public void updateReflectionForCurrentUser(Long taskId, String reflection, Long userId) {
         int updated = taskRepository.updateReflectionByIdAndUserId(taskId, reflection, userId);
         if (updated == 0) {

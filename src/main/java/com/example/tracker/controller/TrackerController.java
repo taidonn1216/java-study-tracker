@@ -85,14 +85,19 @@ public class TrackerController {
     /**
      * 新しい科目を登録し、一覧ページへリダイレクトする。
      *
-     * @param name        フォームから送信された科目名
+     * @param name        フォームから送信された科目名 (空文字不可)
      * @param userDetails ログイン中のユーザー情報
      * @return {@code "/"} へのリダイレクト
      */
     @PostMapping("/subjects")
     public String createSubject(
             @RequestParam("name") String name,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetails userDetails,
+            RedirectAttributes redirectAttributes) {
+        if (name == null || name.isBlank()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "科目名を入力してください。");
+            return "redirect:/";
+        }
         Long userId = trackerService.currentUserId(userDetails.getUsername());
         trackerService.createSubjectForCurrentUser(name, userId);
         return "redirect:/";
