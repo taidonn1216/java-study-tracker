@@ -109,17 +109,30 @@ public class TrackerController {
      * <p>
      * {@code ON DELETE CASCADE} により、紐づくタスクも全て削除される。
      * </p>
+     * <p>
+     * 科目がログインユーザーの所有ではない場合は{@code "/"} へリダイレクトする。
+     * </p>
      *
      * @param id          削除対象の科目ID
      * @param userDetails ログイン中のユーザー情報
+     * @param redirectAttributes エラー時にフラッシュメッセージを渡すための属性
      * @return {@code "/"} へのリダイレクト
      */
     @PostMapping("/subjects/{id}/delete")
     public String deleteSubject(
             @PathVariable("id") Long id,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetails userDetails,
+            RedirectAttributes redirectAttributes) {
         Long userId = trackerService.currentUserId(userDetails.getUsername());
-        trackerService.deleteSubjectForCurrentUser(id, userId);
+        try {
+            trackerService.deleteSubjectForCurrentUser(id, userId);
+        } catch (ResourceNotFoundException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "科目が見つかりませんでした。");
+            return "redirect:/";
+        } catch (AccessForbiddenException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "この科目を削除する権限がありません。");
+            return "redirect:/";
+        }
         return "redirect:/";
     }
 
@@ -158,7 +171,7 @@ public class TrackerController {
 
         Long userId = trackerService.currentUserId(userDetails.getUsername());
 
-        // subjectOpt → Subject を直接取得(見つからなければ AcceseForbddenException → リダイレクト)
+        // subjectOpt → Subject を直接取得(見つからなければ AccessForbiddenException → リダイレクト)
         Subject subject;
         try {
             subject = trackerService.getSubjectForCurrentUser(id, userId);
@@ -172,7 +185,7 @@ public class TrackerController {
         long completedTasks = allTasks.stream().filter(task -> task.getStatus() == TaskStatus.DONE).count();
         long incompleteTasks = totalTasks - completedTasks;
 
-        // ② 表示用タスク(絞り込み)
+        // 表示用タスク(絞り込み)
         List<Task> displayTasks;
         if (statusFilter == null || statusFilter.isEmpty()) {
             displayTasks = allTasks;
@@ -189,7 +202,7 @@ public class TrackerController {
         model.addAttribute("completedTasks", completedTasks);
         model.addAttribute("incompleteTasks", incompleteTasks);
 
-        // ④ プルダウンの選択状態（どれが選ばれているか）を保持するためにモデルに渡す
+        // プルダウンの選択状態（どれが選ばれているか）を保持するためにモデルに渡す
         model.addAttribute("statusFilter", statusFilter);
         model.addAttribute("sortOrder", sortOrder); // 並び替え状態の保持
 
@@ -234,6 +247,11 @@ public class TrackerController {
             return "redirect:/";
         }
 
+        if (title == null || title.isBlank()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "タイトルを入力してください。");
+            return "redirect:/subjects/" + subjectId;
+        }
+
         if (deadline == null || deadline.isBlank()) {
             redirectAttributes.addFlashAttribute("errorMessage", "期限日を入力してください。");
             return "redirect:/subjects/" + subjectId;
@@ -265,18 +283,24 @@ public class TrackerController {
      * @param taskId      削除対象のタスクID
      * @param subjectId   リダイレクト先の科目ID
      * @param userDetails ログイン中のユーザー情報
+     * @param redirectAttributes エラー時にフラッシュメッセージを渡すための属性
      * @return {@code "/subjects/{subjectId}"} へのリダイレクト
      */
     @PostMapping("/tasks/{taskId}/delete")
     public String deleteTask(
             @PathVariable("taskId") Long taskId,
             @RequestParam("subjectId") Long subjectId,
-            @AuthenticationPrincipal UserDetails userDetails) {
+            @AuthenticationPrincipal UserDetails userDetails,
+            RedirectAttributes redirectAttributes) {
         Long userId = trackerService.currentUserId(userDetails.getUsername());
         try {
             trackerService.deleteTaskForCurrentUser(taskId, userId);
-        } catch (ResourceNotFoundException | AccessForbiddenException e) {
-            return "redirect:/";
+        } catch (ResourceNotFoundException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "タスクが見つかりませんでした。");
+            return "redirect:/subjects/" + subjectId;
+        } catch (AccessForbiddenException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "このタスクを削除する権限がありません。");
+            return "redirect:/subjects/" + subjectId;
         }
         return "redirect:/subjects/" + subjectId;
     }
@@ -289,17 +313,25 @@ public class TrackerController {
      * @param status      変更後のステータス文字列
      * @param userDetails ログイン中のユーザー情報
      * @return {@code "/subjects/{subjectId}"} へのリダイレクト
-     * @throws IllegalArgumentException {@code status} が不正の場合
      */
     @PostMapping("/tasks/{taskId}/status")
     public String updateTaskStatus(
             @PathVariable("taskId") Long taskId,
             @RequestParam("subjectId") Long subjectId,
             @RequestParam("status") String status,
+            RedirectAttributes redirectAttributes,
             @AuthenticationPrincipal UserDetails userDetails) {
         Long userId = trackerService.currentUserId(userDetails.getUsername());
+        
+        TaskStatus parsedStatus;
         try {
-            TaskStatus parsedStatus = TaskStatus.fromValue(status);
+            parsedStatus = TaskStatus.fromValue(status);
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "ステータスが不正です。");
+            return "redirect:/subjects/" + subjectId;
+        }
+        
+        try {
             trackerService.updateTaskStatusForCurrentUser(taskId, subjectId, userId, parsedStatus);
         } catch (ResourceNotFoundException | AccessForbiddenException e) {
             return "redirect:/";
@@ -323,7 +355,11 @@ public class TrackerController {
             @RequestParam("reflection") String reflection,
             @AuthenticationPrincipal UserDetails userDetails) {
         Long userId = trackerService.currentUserId(userDetails.getUsername());
-        trackerService.updateReflectionForCurrentUser(taskId, reflection, userId);
+        try {
+            trackerService.updateReflectionForCurrentUser(taskId, reflection, userId);
+        } catch (ResourceNotFoundException | AccessForbiddenException e) {
+            return "redirect:/";
+        }
         return "redirect:/subjects/" + subjectId;
     }
 }
