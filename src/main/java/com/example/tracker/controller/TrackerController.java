@@ -171,7 +171,6 @@ public class TrackerController {
 
         Long userId = trackerService.currentUserId(userDetails.getUsername());
 
-        // subjectOpt → Subject を直接取得(見つからなければ AccessForbiddenException → リダイレクト)
         Subject subject;
         try {
             subject = trackerService.getSubjectForCurrentUser(id, userId);
@@ -190,8 +189,12 @@ public class TrackerController {
         if (statusFilter == null || statusFilter.isEmpty()) {
             displayTasks = allTasks;
         } else {
-            TaskStatus parsedFilter = TaskStatus.fromValue(statusFilter);
-            displayTasks = trackerService.getTasksByStatus(id, parsedFilter, userId);
+            try {
+                TaskStatus parsedFilter = TaskStatus.fromValue(statusFilter);
+                displayTasks = trackerService.getTasksByStatus(id, parsedFilter, userId);
+            } catch (IllegalArgumentException e) {
+                displayTasks = allTasks;
+            }
         }
 
         displayTasks = trackerService.sortTasks(displayTasks, sortOrder);
@@ -312,6 +315,7 @@ public class TrackerController {
      * @param subjectId   リダイレクト先の科目ID
      * @param status      変更後のステータス文字列
      * @param userDetails ログイン中のユーザー情報
+     * @param redirectAttributes エラー時にフラッシュメッセージを渡すための属性
      * @return {@code "/subjects/{subjectId}"} へのリダイレクト
      */
     @PostMapping("/tasks/{taskId}/status")
@@ -333,8 +337,12 @@ public class TrackerController {
         
         try {
             trackerService.updateTaskStatusForCurrentUser(taskId, subjectId, userId, parsedStatus);
-        } catch (ResourceNotFoundException | AccessForbiddenException e) {
-            return "redirect:/";
+        } catch (ResourceNotFoundException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "タスクが見つかりませんでした。");
+            return "redirect:/subjects/" + subjectId;
+        } catch (AccessForbiddenException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "このタスクを更新する権限がありません。");
+            return "redirect:/subjects/" + subjectId;
         }
         return "redirect:/subjects/" + subjectId;
     }
@@ -346,6 +354,7 @@ public class TrackerController {
      * @param subjectId   リダイレクト先の科目ID
      * @param reflection  フォームから送信された新しい振り返り内容
      * @param userDetails ログイン中のユーザー情報
+     * @param redirectAttributes フラッシュメッセージの伝達に使用
      * @return {@code "/subjects/{subjectId}"} へのリダイレクト
      */
     @PostMapping("/tasks/{taskId}/reflection")
@@ -353,12 +362,17 @@ public class TrackerController {
             @PathVariable("taskId") Long taskId,
             @RequestParam("subjectId") Long subjectId,
             @RequestParam("reflection") String reflection,
+            RedirectAttributes redirectAttributes,
             @AuthenticationPrincipal UserDetails userDetails) {
         Long userId = trackerService.currentUserId(userDetails.getUsername());
         try {
             trackerService.updateReflectionForCurrentUser(taskId, reflection, userId);
-        } catch (ResourceNotFoundException | AccessForbiddenException e) {
-            return "redirect:/";
+        } catch (ResourceNotFoundException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "タスクが見つかりませんでした。");
+            return "redirect:/subjects/" + subjectId;
+        } catch (AccessForbiddenException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "この振り返りを更新する権限はありません。");
+            return "redirect:/subjects/" + subjectId;
         }
         return "redirect:/subjects/" + subjectId;
     }
