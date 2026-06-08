@@ -5,6 +5,7 @@ import com.example.tracker.exception.ResourceNotFoundException;
 import com.example.tracker.model.Subject;
 import com.example.tracker.model.SubjectSummary;
 import com.example.tracker.model.Task;
+import com.example.tracker.model.TaskStats;
 import com.example.tracker.model.TaskStatus;
 import com.example.tracker.service.TrackerService;
 import org.springframework.stereotype.Controller;
@@ -59,12 +60,10 @@ public class TrackerController {
     /**
      * 科目一覧ページを表示する。
      *
-     * <p>
-     * 全科目をタスク統計付きで取得し、
-     * {@code subjects} 属性としてモデルに追加する。<br>
-     * また、本日の日付を基準に未完了の期限切れのタスクを取得し、
-     * {@code overdueTasks} 属性としてモデルに追加する。
-     * </p>
+     * <p>全科目をタスク統計付きで取得し、
+     * {@code subjects} 属性としてモデルに追加する。</p>
+     * <p>また、本日の日付を基準に未完了の期限切れのタスクを取得し、
+     * {@code overdueTasks} 属性としてモデルに追加する。</p>
      *
      * @param model       ビューにデータを渡すSpring MVC Model
      * @param userDetails ログイン中のユーザー情報
@@ -85,8 +84,9 @@ public class TrackerController {
     /**
      * 新しい科目を登録し、一覧ページへリダイレクトする。
      *
-     * @param name        フォームから送信された科目名 (空文字不可)
-     * @param userDetails ログイン中のユーザー情報
+     * @param name               フォームから送信された科目名 (空文字不可)
+     * @param userDetails        ログイン中のユーザー情報
+     * @param redirectAttributes エラー時にフラッシュメッセージを渡すための属性
      * @return {@code "/"} へのリダイレクト
      */
     @PostMapping("/subjects")
@@ -99,22 +99,23 @@ public class TrackerController {
             return "redirect:/";
         }
         Long userId = trackerService.currentUserId(userDetails.getUsername());
-        trackerService.createSubjectForCurrentUser(name, userId);
+        try {
+            trackerService.createSubjectForCurrentUser(name, userId);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "科目の登録に失敗しました。");
+            return "redirect:/";
+        }
         return "redirect:/";
     }
 
     /**
      * 科目を削除し、一覧ページへリダイレクトする。
      *
-     * <p>
-     * {@code ON DELETE CASCADE} により、紐づくタスクも全て削除される。
-     * </p>
-     * <p>
-     * 科目がログインユーザーの所有ではない場合は{@code "/"} へリダイレクトする。
-     * </p>
+     * <p>{@code ON DELETE CASCADE} により、紐づくタスクも全て削除される。</p>
+     * <p>科目がログインユーザーの所有ではない場合は{@code "/"} へリダイレクトする。</p>
      *
-     * @param id          削除対象の科目ID
-     * @param userDetails ログイン中のユーザー情報
+     * @param id                 削除対象の科目ID
+     * @param userDetails        ログイン中のユーザー情報
      * @param redirectAttributes エラー時にフラッシュメッセージを渡すための属性
      * @return {@code "/"} へのリダイレクト
      */
@@ -139,13 +140,9 @@ public class TrackerController {
     /**
      * 科目詳細ページ（タスク一覧）を表示する。
      *
-     * <p>
-     * 科目が見つからない場合は一覧ページへリダイレクトする。
-     * </p>
+     * <p>科目が見つからない場合は一覧ページへリダイレクトする。</p>
      *
-     * <p>
      * モデルに追加される属性:
-     * </p>
      * <ul>
      * <li>{@code subject} — 科目エンティティ</li>
      * <li>{@code tasks} — タスク一覧</li>
@@ -165,7 +162,7 @@ public class TrackerController {
     public String subjectDetails(
             @PathVariable("id") Long id,
             @RequestParam(name = "statusFilter", required = false) String statusFilter,
-            @RequestParam(name = "sortOrder", required = false, defaultValue = "idAsc") String sortOrder, // 並び替え条件
+            @RequestParam(name = "sortOrder", required = false, defaultValue = "idAsc") String sortOrder, 
             Model model,
             @AuthenticationPrincipal UserDetails userDetails) {
 
@@ -178,13 +175,9 @@ public class TrackerController {
             return "redirect:/";
         }
 
-        // 全タスク（統計用）
         List<Task> allTasks = trackerService.getTasksForSubject(id, userId);
-        long totalTasks = allTasks.size();
-        long completedTasks = allTasks.stream().filter(task -> task.getStatus() == TaskStatus.DONE).count();
-        long incompleteTasks = totalTasks - completedTasks;
+        TaskStats stats = trackerService.getTaskStatsForSubject(id, userId);
 
-        // 表示用タスク(絞り込み)
         List<Task> displayTasks;
         if (statusFilter == null || statusFilter.isEmpty()) {
             displayTasks = allTasks;
@@ -200,14 +193,13 @@ public class TrackerController {
         displayTasks = trackerService.sortTasks(displayTasks, sortOrder);
 
         model.addAttribute("subject", subject);
-        model.addAttribute("tasks", displayTasks); // 絞り込んだタスク画面に渡す
-        model.addAttribute("totalTasks", totalTasks);
-        model.addAttribute("completedTasks", completedTasks);
-        model.addAttribute("incompleteTasks", incompleteTasks);
+        model.addAttribute("tasks", displayTasks); 
+        model.addAttribute("totalTasks", stats.getTotal());
+        model.addAttribute("completedTasks", stats.getCompleted());
+        model.addAttribute("incompleteTasks", stats.getIncompleted());
 
-        // プルダウンの選択状態（どれが選ばれているか）を保持するためにモデルに渡す
         model.addAttribute("statusFilter", statusFilter);
-        model.addAttribute("sortOrder", sortOrder); // 並び替え状態の保持
+        model.addAttribute("sortOrder", sortOrder); 
 
         return "subject_details";
     }
@@ -215,13 +207,9 @@ public class TrackerController {
     /**
      * 指定した科目に新しいタスクを登録し、科目詳細ページへリダイレクトする。
      * 
-     * <p>
-     * 科目がログインユーザーの所有ではない場合は{@code "/"} へリダイレクトする。
-     * </p>
-     * <p>
-     * 期限日が未入力または不正な形式の場合、タスクを登録せず
-     * フラッシュメッセージとしてエラー内容を設定して科目詳細ページへ戻す。
-     * </p>
+     * <p>科目がログインユーザーの所有ではない場合は{@code "/"} へリダイレクトする。</p>
+     * <p>期限日が未入力または不正な形式の場合、タスクを登録せず
+     * フラッシュメッセージとしてエラー内容を設定して科目詳細ページへ戻す。</p>
      *
      * @param subjectId          タスクを追加する科目のID
      * @param title              フォームから送信されたタスクタイトル
@@ -283,9 +271,9 @@ public class TrackerController {
     /**
      * タスクを削除し、科目詳細ページへリダイレクトする。
      *
-     * @param taskId      削除対象のタスクID
-     * @param subjectId   リダイレクト先の科目ID
-     * @param userDetails ログイン中のユーザー情報
+     * @param taskId             削除対象のタスクID
+     * @param subjectId          リダイレクト先の科目ID
+     * @param userDetails        ログイン中のユーザー情報
      * @param redirectAttributes エラー時にフラッシュメッセージを渡すための属性
      * @return {@code "/subjects/{subjectId}"} へのリダイレクト
      */
@@ -311,10 +299,10 @@ public class TrackerController {
     /**
      * タスクのステータスを次の状態に更新し、科目詳細ページへリダイレクトする。
      *
-     * @param taskId      更新対象のタスクID
-     * @param subjectId   リダイレクト先の科目ID
-     * @param status      変更後のステータス文字列
-     * @param userDetails ログイン中のユーザー情報
+     * @param taskId             更新対象のタスクID
+     * @param subjectId          リダイレクト先の科目ID
+     * @param status             変更後のステータス文字列
+     * @param userDetails        ログイン中のユーザー情報
      * @param redirectAttributes エラー時にフラッシュメッセージを渡すための属性
      * @return {@code "/subjects/{subjectId}"} へのリダイレクト
      */
@@ -326,7 +314,7 @@ public class TrackerController {
             RedirectAttributes redirectAttributes,
             @AuthenticationPrincipal UserDetails userDetails) {
         Long userId = trackerService.currentUserId(userDetails.getUsername());
-        
+
         TaskStatus parsedStatus;
         try {
             parsedStatus = TaskStatus.fromValue(status);
@@ -334,7 +322,7 @@ public class TrackerController {
             redirectAttributes.addFlashAttribute("errorMessage", "ステータスが不正です。");
             return "redirect:/subjects/" + subjectId;
         }
-        
+
         try {
             trackerService.updateTaskStatusForCurrentUser(taskId, subjectId, userId, parsedStatus);
         } catch (ResourceNotFoundException e) {
@@ -350,10 +338,10 @@ public class TrackerController {
     /**
      * タスクの振り返り内容を更新し、科目詳細ページへリダイレクトする。
      *
-     * @param taskId      更新対象のタスクID
-     * @param subjectId   リダイレクト先の科目ID
-     * @param reflection  フォームから送信された新しい振り返り内容
-     * @param userDetails ログイン中のユーザー情報
+     * @param taskId             更新対象のタスクID
+     * @param subjectId          リダイレクト先の科目ID
+     * @param reflection         フォームから送信された新しい振り返り内容
+     * @param userDetails        ログイン中のユーザー情報
      * @param redirectAttributes フラッシュメッセージの伝達に使用
      * @return {@code "/subjects/{subjectId}"} へのリダイレクト
      */

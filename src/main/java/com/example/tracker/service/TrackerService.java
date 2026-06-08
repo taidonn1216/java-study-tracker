@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.tracker.model.Task;
+import com.example.tracker.model.TaskStats;
 import com.example.tracker.model.TaskStatus;
 import com.example.tracker.exception.AccessForbiddenException;
 import com.example.tracker.exception.ResourceNotFoundException;
@@ -134,6 +135,25 @@ public class TrackerService {
      */
     public List<Task> getTasksForSubject(Long subjectId, Long userId) {
         return taskRepository.findBySubjectIdAndUserId(subjectId, userId);
+    }
+    
+    /**
+     * 指定した科目のタスク統計情報を返す。
+     * 
+     * <p>
+     * 対象ユーザーの科目に紐ずく全タスクを取得し、
+     * 完了数・未完了数を集計した {@link TaskStats} を返す
+     * <p>
+     * 
+     * @param subjectId 科目ID
+     * @param userId    ユーザーID
+     * @return タスク統計情報
+     */
+    public TaskStats getTaskStatsForSubject(Long subjectId, Long userId) {
+        List<Task> tasks = taskRepository.findBySubjectIdAndUserId(subjectId, userId);
+        long total = tasks.size();
+        long completed = tasks.stream().filter(t -> t.getStatus() == TaskStatus.DONE).count();
+        return new TaskStats(total, completed, total - completed);
     }
 
     /**
