@@ -48,7 +48,7 @@ public enum TaskStatus {
      * 文字列から{@link TaskStatus} を取得する。
      * 
      * <p>
-     * enum名 {@code DONE} または表示ラベル {@code 完了} の
+     * enum名 ({@code DONE} など) または表示ラベル ({@code 完了} など) の
      * どちらでも取得可能
      * </p>
      * 

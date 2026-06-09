@@ -288,10 +288,10 @@ public class TrackerController {
             trackerService.deleteTaskForCurrentUser(taskId, userId);
         } catch (ResourceNotFoundException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "タスクが見つかりませんでした。");
-            return "redirect:/subjects/" + subjectId;
+            return "redirect:/";
         } catch (AccessForbiddenException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "このタスクを削除する権限がありません。");
-            return "redirect:/subjects/" + subjectId;
+            return "redirect:/";
         }
         return "redirect:/subjects/" + subjectId;
     }
@@ -327,10 +327,10 @@ public class TrackerController {
             trackerService.updateTaskStatusForCurrentUser(taskId, subjectId, userId, parsedStatus);
         } catch (ResourceNotFoundException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "タスクが見つかりませんでした。");
-            return "redirect:/subjects/" + subjectId;
+            return "redirect:/";
         } catch (AccessForbiddenException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "このタスクを更新する権限がありません。");
-            return "redirect:/subjects/" + subjectId;
+            return "redirect:/";
         }
         return "redirect:/subjects/" + subjectId;
     }

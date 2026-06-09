@@ -18,9 +18,12 @@ import com.example.tracker.model.Subject;
 import com.example.tracker.model.SubjectSummary;
 import com.example.tracker.model.Task;
 import com.example.tracker.model.TaskStatus;
+import com.example.tracker.model.TaskStats;
 import com.example.tracker.service.CustomUserDetailsService;
 import com.example.tracker.service.TrackerService;
 import com.example.tracker.config.SecurityConfig;
+import com.example.tracker.exception.AccessForbiddenException;
+import com.example.tracker.exception.ResourceNotFoundException;
 
 //Java標準
 import java.time.LocalDate;
@@ -117,6 +120,8 @@ class TrackerControllerTest {
         when(trackerService.currentUserId("testuser")).thenReturn(1L);
         when(trackerService.getSubjectForCurrentUser(1L, 1L)).thenReturn(subject);
         when(trackerService.getTasksForSubject(1L, 1L)).thenReturn(tasks);
+        when(trackerService.getTaskStatsForSubject(1L, 1L)).thenReturn(new TaskStats(3L, 1L, 2L));
+        when(trackerService.sortTasks(tasks, "idAsc")).thenReturn(tasks);
 
         mockMvc.perform(get("/subjects/1"))
                 .andExpect(status().isOk())
@@ -141,6 +146,8 @@ class TrackerControllerTest {
         when(trackerService.currentUserId("testuser")).thenReturn(1L);
         when(trackerService.getSubjectForCurrentUser(1L, 1L)).thenReturn(subject);
         when(trackerService.getTasksForSubject(1L, 1L)).thenReturn(Collections.emptyList());
+        when(trackerService.getTaskStatsForSubject(1L, 1L)).thenReturn(new TaskStats(0L, 0L, 0L));
+
 
         mockMvc.perform(get("/subjects/1"))
                 .andExpect(status().isOk())
@@ -154,7 +161,7 @@ class TrackerControllerTest {
     void testSubjectDetails_NotFound() throws Exception {
         when(trackerService.currentUserId("testuser")).thenReturn(1L);
         when(trackerService.getSubjectForCurrentUser(999L, 1L))
-                .thenThrow(new RuntimeException("Subject not found or forbidden"));
+                .thenThrow(new ResourceNotFoundException("Subject not found"));
 
         mockMvc.perform(get("/subjects/999"))
                 .andExpect(status().is3xxRedirection())
@@ -166,7 +173,7 @@ class TrackerControllerTest {
     void testSubjectDetails_OtherUserSubject() throws Exception {
         when(trackerService.currentUserId("testuser")).thenReturn(1L);
         when(trackerService.getSubjectForCurrentUser(99L, 1L))
-                .thenThrow(new RuntimeException("Subject not found or forbidden"));
+                .thenThrow(new AccessForbiddenException("Subject not forbidden"));
 
         mockMvc.perform(get("/subjects/99"))
                 .andExpect(status().is3xxRedirection())
@@ -225,7 +232,7 @@ class TrackerControllerTest {
     @WithMockUser(username = "testuser")
     void testUpdateTaskStatus_otherUserTask() throws Exception {
         when(trackerService.currentUserId("testuser")).thenReturn(1L);
-        doThrow(new RuntimeException("forbidden"))
+        doThrow(new AccessForbiddenException("forbidden"))
                 .when(trackerService)
                 .updateTaskStatusForCurrentUser(eq(99L), anyLong(), eq(1L), any());
 
@@ -255,7 +262,7 @@ class TrackerControllerTest {
     @WithMockUser(username = "testuser")
     void testDeleteTask_OtherUserTask() throws Exception {
         when(trackerService.currentUserId("testuser")).thenReturn(1L);
-        doThrow(new RuntimeException("forbidden"))
+        doThrow(new AccessForbiddenException("forbidden"))
                 .when(trackerService)
                 .deleteTaskForCurrentUser(eq(99L), eq(1L));
 
@@ -307,7 +314,7 @@ class TrackerControllerTest {
     void testCreateTask_OtherUsersSubject() throws Exception {
         when(trackerService.currentUserId("testuser")).thenReturn(1L);
         when(trackerService.getSubjectForCurrentUser(99L, 1L))
-                .thenThrow(new RuntimeException("Subject not found or forbidden"));
+                .thenThrow(new ResourceNotFoundException("Subject not found"));
 
         mockMvc.perform(post("/subjects/99/tasks")
                 .param("title", "不正タスク")
