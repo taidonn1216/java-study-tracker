@@ -20,6 +20,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 public class AuthController {
 
+    /** ユーザー名の最小文字数 */
+    private static final int MIN_USERNAME_LENGTH = 2;
+
+    /** パスワードの最小文字数 */
+    private static final int MIN_PASSWORD_LENGTH = 4;
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -67,7 +73,10 @@ public class AuthController {
      * ユーザー登録を処理する。
      * 
      * <p>
-     * ユーザー名が既に使われている場合はエラーメッセージを表示して登録画面に戻る。
+     * ユーザー名・パスワードが空、または下限値文字数 (ユーザー名{@value #MIN_USERNAME_LENGTH}文字・
+     * パスワード{@value #MIN_PASSWORD_LENGTH}文字) 未満の場合、
+     * およびユーザー名が既に使われている場合、
+     * エラーメッセージを表示して登録画面に戻る。
      * </p>
      * 
      * @param username           フォームから送信されたユーザー名
@@ -80,6 +89,26 @@ public class AuthController {
             @RequestParam("username") String username,
             @RequestParam("password") String password,
             RedirectAttributes redirectAttributes) {
+
+        // ユーザー名の空・長さチェック
+        if (username == null || username.isBlank()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "ユーザー名を入力してください。");
+            return "redirect:/register";
+        }
+        if (username.length() < MIN_USERNAME_LENGTH) {
+            redirectAttributes.addFlashAttribute("errorMessage", "ユーザー名は" + MIN_USERNAME_LENGTH + "文字以上で入力してください。");
+            return "redirect:/register";
+        }
+
+        // パスワードの空・長さチェック
+        if (password == null || password.isBlank()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "パスワードを入力してください。");
+            return "redirect:/register";
+        }
+        if (password.length() < MIN_PASSWORD_LENGTH) {
+            redirectAttributes.addFlashAttribute("errorMessage", "パスワードは" + MIN_PASSWORD_LENGTH + "文字以上で入力してください。");
+            return "redirect:/register";
+        }
 
         // ユーザー名の重複チェック
         if (userRepository.findByUsername(username).isPresent()) {
