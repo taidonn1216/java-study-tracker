@@ -123,7 +123,7 @@ java-tracker/
             ├── TrackerApplicationTests.java               ...   Spring Boot 起動テスト
             ├── controller/
             │   ├── AdminControllerTest.java               ...   管理者コントローラーのテスト 
-            |   ├── AuthControllerTest.java              ...   認証・ユーザー登録テスト
+            |   ├── AuthControllerTest.java                ...   認証・ユーザー登録テスト
             |   └── TrackerControllerTest.java             ...   コントローラーのテスト
             ├── model/
             │   ├── SubjectTest.java                       ...   科目モデルのテスト
