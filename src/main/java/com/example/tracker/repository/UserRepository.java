@@ -1,6 +1,8 @@
 package com.example.tracker.repository;
 
 import com.example.tracker.model.User;
+import com.example.tracker.model.UserProgress;
+
 import java.util.Optional;
 import java.util.List;
 
@@ -56,4 +58,11 @@ public interface UserRepository {
      * @return 該当するユーザー情報
      */
     User findById(Long id);
+    
+    /**
+     * 全ユーザーの学習進捗 (完了/未完了タスク数/完了タスク数・最終ログイン) を取得する。
+     * 
+     * @return 全ユーザーの進捗情報リスト
+     */
+    List<UserProgress> findAllProgress();
 }

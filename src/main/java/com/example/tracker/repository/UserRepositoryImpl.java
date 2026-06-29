@@ -1,10 +1,13 @@
 package com.example.tracker.repository;
 
 import com.example.tracker.model.User;
+import com.example.tracker.model.UserProgress;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,6 +41,14 @@ public class UserRepositoryImpl implements UserRepository {
         user.setRole(rs.getString("role"));
         return user;
     };
+
+    private final RowMapper<UserProgress> UserProgressRowMapper = (rs, rowNum) -> 
+        new UserProgress(
+            rs.getString("username"),
+            rs.getLong("completed_count"),
+            rs.getLong("incompleted_count"),
+            rs.getObject("last_login_at", LocalDateTime.class)
+        );
 
     /**
      * コンストラクタインジェクション
@@ -83,4 +94,24 @@ public class UserRepositoryImpl implements UserRepository {
         String sql = "SELECT id, username, password, role FROM USERS WHERE id = ?";
         return jdbcTemplate.queryForObject(sql, userRowMapper, id);
     }
+    
+    /** {@inheritDoc} */
+    @Override
+    public List<UserProgress> findAllProgress() {
+        String sql = """
+                SELECT u.username,
+                       COUNT(CASE WHEN t.status = 'DONE' THEN 1 END) AS completed_count,
+                       COUNT(CASE WHEN t.status <> 'DONE' THEN 1 END) AS incompleted_count,
+                       u.last_login_at
+                FROM USERS u
+                LEFT JOIN SUBJECT s ON s.user_id = u.id
+                LEFT JOIN TASK   t ON t.subject_id = s.id       
+                GROUP BY u.id, u.username, u.last_login_at
+                ORDER BY u.id
+                """;
+        return jdbcTemplate.query(sql, UserProgressRowMapper);
+
+    }
+
+    
 }
