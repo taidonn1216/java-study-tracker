@@ -1,5 +1,10 @@
 package com.example.tracker.config;
+
+import com.example.tracker.repository.UserRepository;
 import com.example.tracker.service.CustomUserDetailsService;
+
+import java.time.LocalDateTime;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -11,8 +16,10 @@ import org.springframework.security.web.SecurityFilterChain;
 /**
  * Spring Security の設定クラス
  * 
- * <p>ログイン・ログアウトの設定、アクセス制御、
- * パスワードエンコーダー、認証プロバイダーの定義を行う。</p>
+ * <p>
+ * ログイン・ログアウトの設定、アクセス制御、
+ * パスワードエンコーダー、認証プロバイダーの定義を行う。
+ * </p>
  * 
  * @author tracker-team
  * @version 1.0
@@ -23,21 +30,30 @@ public class SecurityConfig {
 
     /** ユーザー情報取得サービス */
     private final CustomUserDetailsService customUserDetailsService;
+    
+    /** ユーザー情報リポジトリ */
+    private final UserRepository userRepository;
 
     /**
      * コンストラクタインジェクション
      * 
      * @param customUserDetailsService {@link CustomUserDetailsService} インスタンス
+     * @param userRepository           {@link UserRepository} インスタンス
      */
-    public SecurityConfig(CustomUserDetailsService customUserDetailsService) {
+    public SecurityConfig(CustomUserDetailsService customUserDetailsService, UserRepository userRepository) {
         this.customUserDetailsService = customUserDetailsService;
+        this.userRepository = userRepository;
     }
 
     /**
      * セキュリティフィルターチェーンの設定。
      * 
-     * <p>ログインページ・ ユーザー登録ページ・CSSは認証不要。
-     * それ以外のページは認証が必須。</p>
+     * <p>
+     * ログインページ・ ユーザー登録ページ・CSSは認証不要。
+     * それ以外のページは認証が必須。
+     * </p>
+     * 
+     * <p>ログイン成功時にログインユーザーの最終ログイン日時を記録する。</p>
      * 
      * @param http {@link HttpSecurity} インスタンス
      * @return {@link SecurityFilterChain} インスタンス
@@ -46,29 +62,27 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/register", "/css/**").permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .anyRequest().authenticated()
-            )
-            .formLogin(form -> form
-                .loginPage("/login")
-                .successHandler((request, response, authentication) -> {
-                    if(authentication.getAuthorities().stream()
-                            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-                        response.sendRedirect("/admin");
-                    } else {
-                        response.sendRedirect("/");
-                    }
-                })
-                .permitAll()
-            )
-            .logout(logout -> logout
-                .logoutSuccessUrl("/login?logout")
-                .permitAll()
-            )    
-            .authenticationProvider(authenticationProvider());
-             
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/login", "/register", "/css/**").permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .anyRequest().authenticated())
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .successHandler((request, response, authentication) -> {
+                            userRepository.updateLastLoginAt(authentication.getName(), LocalDateTime.now());
+                            if (authentication.getAuthorities().stream()
+                                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+                                response.sendRedirect("/admin");
+                            } else {
+                                response.sendRedirect("/");
+                            }
+                        })
+                        .permitAll())
+                .logout(logout -> logout
+                        .logoutSuccessUrl("/login?logout")
+                        .permitAll())
+                .authenticationProvider(authenticationProvider());
+
         return http.build();
     }
 
@@ -85,8 +99,10 @@ public class SecurityConfig {
     /**
      * 認証プロバイダーの設定。
      * 
-     * <p> {@link CustomUserDetailsService} と {@link PasswordEncoder} を
-     * 使用してユーザー認証を行う。 </p>
+     * <p>
+     * {@link CustomUserDetailsService} と {@link PasswordEncoder} を
+     * 使用してユーザー認証を行う。
+     * </p>
      * 
      * @return {@link DaoAuthenticationProvider}
      */

@@ -4,6 +4,7 @@ import com.example.tracker.model.User;
 import com.example.tracker.model.UserProgress;
 
 import java.util.Optional;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -58,11 +59,21 @@ public interface UserRepository {
      * @return 該当するユーザー情報
      */
     User findById(Long id);
-    
+
     /**
      * 全ユーザーの学習進捗 (完了/未完了タスク数/完了タスク数・最終ログイン) を取得する。
      * 
      * @return 全ユーザーの進捗情報リスト
      */
     List<UserProgress> findAllProgress();
+
+    /**
+     * 指定してユーザーの最終ログイン日時を更新する。
+     * 
+     * @param username 更新対象のユーザー名
+     * @param loginAt  記録する最終ログイン日時
+     */
+    void updateLastLoginAt(String username, LocalDateTime loginAt);
+
+    
 }

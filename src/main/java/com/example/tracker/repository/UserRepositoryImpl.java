@@ -42,13 +42,11 @@ public class UserRepositoryImpl implements UserRepository {
         return user;
     };
 
-    private final RowMapper<UserProgress> UserProgressRowMapper = (rs, rowNum) -> 
-        new UserProgress(
+    private final RowMapper<UserProgress> UserProgressRowMapper = (rs, rowNum) -> new UserProgress(
             rs.getString("username"),
             rs.getLong("completed_count"),
             rs.getLong("incompleted_count"),
-            rs.getObject("last_login_at", LocalDateTime.class)
-        );
+            rs.getObject("last_login_at", LocalDateTime.class));
 
     /**
      * コンストラクタインジェクション
@@ -94,7 +92,7 @@ public class UserRepositoryImpl implements UserRepository {
         String sql = "SELECT id, username, password, role FROM USERS WHERE id = ?";
         return jdbcTemplate.queryForObject(sql, userRowMapper, id);
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public List<UserProgress> findAllProgress() {
@@ -105,7 +103,7 @@ public class UserRepositoryImpl implements UserRepository {
                        u.last_login_at
                 FROM USERS u
                 LEFT JOIN SUBJECT s ON s.user_id = u.id
-                LEFT JOIN TASK   t ON t.subject_id = s.id       
+                LEFT JOIN TASK   t ON t.subject_id = s.id
                 GROUP BY u.id, u.username, u.last_login_at
                 ORDER BY u.id
                 """;
@@ -113,5 +111,11 @@ public class UserRepositoryImpl implements UserRepository {
 
     }
 
-    
+    /** {@inheritDoc} */
+    @Override
+    public void updateLastLoginAt(String username, LocalDateTime loginAt) {
+        String sql = "UPDATE USERS SET last_login_at = ? WHERE username = ?";
+        jdbcTemplate.update(sql, loginAt, username);
+    }
+
 }
