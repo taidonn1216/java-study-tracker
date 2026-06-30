@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.tracker.model.Task;
 import com.example.tracker.model.TaskStats;
 import com.example.tracker.model.TaskStatus;
+import com.example.tracker.model.UserProgress;
 import com.example.tracker.exception.AccessForbiddenException;
 import com.example.tracker.exception.ResourceNotFoundException;
 import com.example.tracker.model.Subject;
@@ -288,6 +289,15 @@ public class TrackerService {
             sorted.sort(Comparator.comparing(Task::getId));
         }
         return sorted;
+    }
+
+    /**
+     * 全ユーザーの学習進捗一覧を返す (管理者ダッシュボード用)。
+     * 
+     * @return 全ユーザーの進捗情報リスト
+     */
+    public List<UserProgress> getAllUserProgress() {
+        return userRepository.findAllProgress();
     }
 
 }

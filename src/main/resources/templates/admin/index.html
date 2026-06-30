@@ -42,6 +42,28 @@
             </tr>
         </tbody>
     </table>
+    
+    <h2>学習状況一覧</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ユーザー名</th>
+                <th>完了タスク</th>
+                <th>未完了タスク</th>
+                <th>最終ログイン日時</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="p : ${userProgress}">
+                <tb th:text="${p.username}"></tb>
+                <tb th:text="${p.completedCount}"></tb>
+                <tb th:text="${p.incompletedCount}"></tb>
+                <tb th:text="${p.lastLoginAt != null
+                                ?#temporals.format(p.lastLoginAt, 'yyyy/MM/dd HH:mm')
+                                :'未ログイン}'"></tb>
+            </tr>
+        </tbody>
+    </table>
 </body>
 
 </html>

@@ -13,12 +13,13 @@ import org.springframework.security.core.Authentication;
 
 import com.example.tracker.model.User;
 import com.example.tracker.repository.UserRepository;
+import com.example.tracker.service.TrackerService;
 
 /**
  * 管理者向けの機能を提供するコントローラー。
  * 
  * <p>
- * ユーザー一覧の表示やロール変更などの管理機能を扱う。
+ * ユーザー一覧の表示・ロール変更・学習状況一覧の表示などの管理機能を扱う。
  * </p>
  * 
  * @author tracker-team
@@ -32,13 +33,17 @@ public class AdminController {
 
     private final UserRepository userRepository;
 
+    private final TrackerService trackerService;
+
     /**
      * コンストラクタ。
      * 
      * @param userRepository ユーザー情報を取得するリポジトリ
+     * @param trackerService 全ユーザーの学習進捗を取得するサービス
      */
-    public AdminController(UserRepository userRepository) {
+    public AdminController(UserRepository userRepository, TrackerService trackerService) {
         this.userRepository = userRepository;
+        this.trackerService = trackerService;
     }
 
     /**
@@ -51,6 +56,7 @@ public class AdminController {
     @GetMapping
     public String adminTop(Model model) {
         model.addAttribute("users", userRepository.findAll());
+        model.addAttribute("userProgress", trackerService.getAllUserProgress());
         return "admin/index";
     }
 
