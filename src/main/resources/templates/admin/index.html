@@ -6,10 +6,19 @@
 </head>
 
 <body>
+    <!-- ログアウト -->
+    <div style="display: flex; justify-content: flex-end;">
+        <form th:action="@{/logout}" method="post">
+            <input type="hidden" th:if="${_csrf != null}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+            <button type="submit">ログアウト</button>
+        </form>
+    </div>
+
+
     <h1>ユーザー管理画面</h1>
 
-    <p th:if="${errorMessage != null}" th:text="${errorMessage}" style="color: red;"> </p>
-
+    <p th:if="${errorMessage != null}" th:text="${errorMessage}" style="color: red;"></p>
+         
     <table border="1">
         <thead>
             <tr>
@@ -42,7 +51,7 @@
             </tr>
         </tbody>
     </table>
-    
+
     <h2>学習状況一覧</h2>
     <table border="1">
         <thead>
@@ -55,12 +64,12 @@
         </thead>
         <tbody>
             <tr th:each="p : ${userProgress}">
-                <tb th:text="${p.username}"></tb>
-                <tb th:text="${p.completedCount}"></tb>
-                <tb th:text="${p.incompletedCount}"></tb>
-                <tb th:text="${p.lastLoginAt != null
+                <td th:text="${p.username}"></td>
+                <td th:text="${p.completedCount}"></td>
+                <td th:text="${p.incompletedCount}"></td>
+                <td th:text="${p.lastLoginAt != null
                                 ?#temporals.format(p.lastLoginAt, 'yyyy/MM/dd HH:mm')
-                                :'未ログイン}'"></tb>
+                                :'未ログイン'}"></td>
             </tr>
         </tbody>
     </table>
