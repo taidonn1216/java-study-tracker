@@ -18,6 +18,7 @@ import com.example.tracker.model.Subject;
 import com.example.tracker.model.SubjectSummary;
 import com.example.tracker.model.Task;
 import com.example.tracker.model.TaskStatus;
+import com.example.tracker.repository.UserRepository;
 import com.example.tracker.model.TaskStats;
 import com.example.tracker.service.CustomUserDetailsService;
 import com.example.tracker.service.TrackerService;
@@ -46,7 +47,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 @WebMvcTest(TrackerController.class)
 @Import(SecurityConfig.class)
 class TrackerControllerTest {
-
+                
     @Autowired
     private MockMvc mockMvc;
 
@@ -55,6 +56,9 @@ class TrackerControllerTest {
 
     @MockitoBean
     private CustomUserDetailsService customUserDetailsService;
+
+    @MockitoBean
+    private UserRepository userRepository;
 
     @Test
     @WithMockUser(username = "testuser")

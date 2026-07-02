@@ -2,6 +2,7 @@ package com.example.tracker.repository;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,6 +14,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.example.tracker.model.User;
+import com.example.tracker.model.UserProgress;
 
 @JdbcTest
 @Import({ UserRepositoryImpl.class })
@@ -91,4 +93,49 @@ public class UserRepositoryImplTest {
         assertEquals("testuser", user.getUsername());
         assertEquals("GENERAL", user.getRole());
     }
+
+    @Test
+    void testFindAllProgress_CountsCompletedAndIncompleted() {
+        jdbcTemplate.update("INSERT INTO SUBJECT (name, user_id) VALUES (?, ?)", "数学", userId);
+        Long subjectId = jdbcTemplate.queryForObject(
+            "SELECT id FROM SUBJECT WHERE user_id = ?", Long.class, userId);
+        jdbcTemplate.update("INSERT INTO TASK (subject_id, title, status) VALUES (?, ?, 'DONE')", subjectId, "task1");
+        jdbcTemplate.update("INSERT INTO TASK (subject_id, title, status) VALUES (?, ?, 'DONE')", subjectId, "task2");
+        jdbcTemplate.update("INSERT INTO TASK (subject_id, title, status) VALUES (?, ?, 'NOT_STARTED')", subjectId, "task3");
+
+        UserProgress p = userRepository.findAllProgress().get(0);
+
+        assertEquals(2, p.getCompletedCount());
+        assertEquals(1, p.getIncompletedCount());  
+    }
+    
+    @Test
+    void testFindAllProgress_UserWithoutTasksIsNotDropped() {
+        List<UserProgress> result = userRepository.findAllProgress();
+
+        assertEquals(1, result.size());
+        UserProgress p = result.get(0);
+        assertEquals("testuser", p.getUsername());
+        assertEquals(0, p.getCompletedCount());
+        assertEquals(0, p.getIncompletedCount());
+    }
+
+    @Test
+    void testFindAllProgress_LastLoginAtCanBeNull() {
+        List<UserProgress> result = userRepository.findAllProgress();
+
+        assertEquals(1, result.size());
+        assertNull(result.get(0).getLastLoginAt());
+    }
+
+    @Test
+    void testUpdateLastLoginAt_SetValueAndReadableViaFindAllProgress() {
+        LocalDateTime loginAt =LocalDateTime.of(2026, 7, 2, 10, 30,0);
+
+        userRepository.updateLastLoginAt("testuser", loginAt);
+
+        UserProgress p = userRepository.findAllProgress().get(0);
+        assertEquals(loginAt, p.getLastLoginAt());
+    }
+
 }

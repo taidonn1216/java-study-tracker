@@ -18,6 +18,7 @@ import com.example.tracker.config.SecurityConfig;
 import com.example.tracker.model.User;
 import com.example.tracker.repository.UserRepository;
 import com.example.tracker.service.CustomUserDetailsService;
+import com.example.tracker.service.TrackerService;
 
 //static import
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -25,6 +26,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 
 @WebMvcTest(com.example.tracker.controller.AdminController.class)
 @Import(SecurityConfig.class)
@@ -39,12 +41,16 @@ public class AdminControllerTest {
     @MockitoBean
     private UserRepository userRepository;
 
+    @MockitoBean
+    private TrackerService trackerService;
+
     @Test
     @WithMockUser(roles = "ADMIN")
     void ADMINで管理画面が表示される() throws Exception {
         mockMvc.perform(get("/admin"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("admin/index"));
+                .andExpect(view().name("admin/index"))
+                .andExpect(model().attributeExists("users", "userProgress"));
     }
 
     @Test
