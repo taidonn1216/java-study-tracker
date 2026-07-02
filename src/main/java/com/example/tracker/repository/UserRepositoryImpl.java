@@ -41,7 +41,10 @@ public class UserRepositoryImpl implements UserRepository {
         user.setRole(rs.getString("role"));
         return user;
     };
-
+    
+    /**
+     * {@link java.sql.ResultSet} の行を {@link UserProgress} オブジェクトに変換する {@link RowMapper}
+     */
     private final RowMapper<UserProgress> UserProgressRowMapper = (rs, rowNum) -> new UserProgress(
             rs.getString("username"),
             rs.getLong("completed_count"),

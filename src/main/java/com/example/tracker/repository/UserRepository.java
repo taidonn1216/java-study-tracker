@@ -61,19 +61,17 @@ public interface UserRepository {
     User findById(Long id);
 
     /**
-     * 全ユーザーの学習進捗 (完了/未完了タスク数/完了タスク数・最終ログイン) を取得する。
+     * 全ユーザーの学習進捗 (完了タスク数/未完了タスク数/最終ログイン) を取得する。
      * 
      * @return 全ユーザーの進捗情報リスト
      */
     List<UserProgress> findAllProgress();
 
     /**
-     * 指定してユーザーの最終ログイン日時を更新する。
+     * 指定したユーザーの最終ログイン日時を更新する。
      * 
      * @param username 更新対象のユーザー名
      * @param loginAt  記録する最終ログイン日時
      */
-    void updateLastLoginAt(String username, LocalDateTime loginAt);
-
-    
+    void updateLastLoginAt(String username, LocalDateTime loginAt);    
 }
