@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
@@ -16,6 +17,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import com.example.tracker.model.User;
 import com.example.tracker.model.UserProgress;
 
+/**
+ * UserRepositoryImplTestのテストクラス
+ */
 @JdbcTest
 @Import({ UserRepositoryImpl.class })
 public class UserRepositoryImplTest {

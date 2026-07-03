@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
  * {@code USERS}・{@code SUBJECT}・{@code TASK} を結合・集計した結果を保持する。
  * </p>
  * 
- * @author taidonn
+ * @author tracker-team
  * @version 1.0
  * @since 1.0
  */

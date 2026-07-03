@@ -8,8 +8,8 @@ package com.example.tracker.model;
  * ダッシュボード等でタスク全体の進捗を表示するために使用される。
  * </p>
  * 
- * @author taidonn
- * @versionn 1.0
+ * @author tracker-team
+ * @version 1.0
  * @since 1.0
  * @see Task
  */

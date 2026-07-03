@@ -13,9 +13,14 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
  * 認証関連画面を提供するコントローラー。
  * 
  * <p>
- * このクラスはログイン画面の表示のみを担当し、
+ * ログイン画面・ユーザー登録の表示と、ユーザー登録処理を担当する。
  * ユーザー名・パスワードの検証(認証処理)はSpring Securityが担当する。
  * </p>
+ * 
+ * @author tracker-team
+ * @since 1.0
+ * @see UserRepository
+ * @see PasswordEncoder
  */
 @Controller
 public class AuthController {

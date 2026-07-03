@@ -27,7 +27,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-
+/**
+ * AdminControllerTestのテストクラス
+ */
 @WebMvcTest(com.example.tracker.controller.AdminController.class)
 @Import(SecurityConfig.class)
 public class AdminControllerTest {

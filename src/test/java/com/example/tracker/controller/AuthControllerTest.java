@@ -1,7 +1,9 @@
 package com.example.tracker.controller;
 
+//JUnit
 import org.junit.jupiter.api.Test;
 
+//Spring boot Test
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
@@ -9,13 +11,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+//アプリ内クラス
 import com.example.tracker.config.SecurityConfig;
 import com.example.tracker.model.User;
 import com.example.tracker.repository.UserRepository;
 import com.example.tracker.service.CustomUserDetailsService;
 
+//Java標準
 import java.util.Optional;
 
+//static　import
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -23,7 +28,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 
-
+/**
+ * AuthControllerTestのテストクラス
+ */
 @WebMvcTest(AuthController.class)
 @Import(SecurityConfig.class)
 public class AuthControllerTest {

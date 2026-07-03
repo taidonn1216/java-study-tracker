@@ -27,6 +27,13 @@ import com.example.tracker.repository.UserRepository;
  * ログインユーザーの識別など、 Controller から呼び出す
  * 共通ロジックを提供する。
  * </p>
+ * 
+ * @author tracker-team
+ * @version 1.0
+ * @since 1.0
+ * @see UserRepository
+ * @see SubjectRepository
+ * @see TaskRepository
  */
 @Service
 public class TrackerService {
